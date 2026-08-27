@@ -1,8 +1,15 @@
 namespace UniConnect.Application.DTOs;
 
-public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme);
-public record UpdateProfileDto(string FirstName, string LastName, string Headline, string Bio);
-
+public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
+public record UpdateProfileDto(string FirstName, string LastName, string Headline, string Bio, string StudentNumber);
+public record CreateProfileDto(
+    string FirstName,
+    string LastName,
+    string Programme,
+    string? Headline,
+    string? Bio,
+    string? StudentNumber
+);
 public record BusinessProfileDto(Guid Id, string CompanyName, string Industry, string WebsiteUrl);
 public record CreateBusinessDto(string CompanyName, string RegistrationNumber, string Industry, string WebsiteUrl);
 

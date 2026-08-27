@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniConnect.Application.DTOs;
@@ -14,6 +15,12 @@ public class ProfileController : ApiControllerBase
     public ProfileController(IProfileService profileService)
     {
         _profileService = profileService;
+    }
+    [HttpPost]
+    public async Task<IActionResult> CreateProfile([FromBody] CreateProfileDto dto, CancellationToken cancellationToken)
+    {
+        var createdProfile = await _profileService.CreateProfileAsync(CurrentUserId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetProfileByUserId), new { userId = createdProfile.UserId }, createdProfile);
     }
 
     [HttpGet("me")]

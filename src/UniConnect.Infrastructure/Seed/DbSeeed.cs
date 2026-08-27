@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,7 +89,7 @@ public static class DatabaseSeeder
                 UserId = users[i].Id,
                 FirstName = $"FirstName{i + 1}",
                 LastName = $"LastName{i + 1}",
-                SystemHeadline = $"Software Engineer Candidate #{i + 1}",
+                StudentNumber = $"40{RandomNumberGenerator.GetInt32(0, 10_000_000):D7}",
                 AboutBio = $"Enthusiastic developer and student at UniConnect pursuing technology solutions for profile {i + 1}.",
                 GithubUrl = $"https://github.com/user{i + 1}",
                 CvFileUrl = $"https://storage.uniconnect.ac.za/cvs/user_{i + 1}.pdf",

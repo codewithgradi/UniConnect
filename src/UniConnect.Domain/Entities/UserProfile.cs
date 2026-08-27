@@ -9,6 +9,7 @@ public class UserProfile
     public string AboutBio { get; set; } = string.Empty;
     public string? GithubUrl { get; set; }
     public string? CvFileUrl { get; set; }
+    public string StudentNumber { get; set; }=string.Empty;
     public bool IsPublic { get; set; } = true;
     public string Programme { get; set; } = string.Empty; // For Career Pathway Matching
 

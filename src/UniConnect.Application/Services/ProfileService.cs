@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using UniConnect.Application.DTOs;
+using UniConnect.Domain.Entities;
 using UniConnect.Domain.Interfaces.Repositories;
 
 namespace UniConnect.Application.Services;
@@ -12,6 +14,42 @@ public class ProfileService : IProfileService
         _unitOfWork = unitOfWork;
     }
 
+    public async Task<UserProfileDto> CreateProfileAsync(Guid userId, CreateProfileDto dto, CancellationToken cancellationToken = default)
+    {
+        var existingProfile = await _unitOfWork.UserProfiles.GetByUserIdAsync(userId);
+        if (existingProfile != null)
+        {
+            throw new InvalidOperationException("Profile already exists for this user.");
+        }
+
+
+        var profile = new UserProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            StudentNumber = dto.StudentNumber,
+            Programme = dto.Programme,
+            SystemHeadline = dto.Headline,
+            AboutBio = dto.Bio
+        };
+
+        await _unitOfWork.UserProfiles.AddAsync(profile, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Make sure the DTO positional arguments EXACTLY match the record parameter order
+        return new UserProfileDto(
+            profile.Id,
+            profile.UserId.ToString(),
+            profile.FirstName,        // Match order of UserProfileDto definition
+            profile.LastName,
+            profile.SystemHeadline,
+            profile.AboutBio,
+            profile.Programme,
+            profile.StudentNumber
+        );
+    }
     public async Task<UserProfileDto?> GetProfileByUserIdAsync(Guid userId)
     {
         var profile = await _unitOfWork.UserProfiles.GetByUserIdAsync(userId);
@@ -19,7 +57,8 @@ public class ProfileService : IProfileService
 
         return new UserProfileDto(
             profile.Id,
-            profile.UserId.ToString(), // <-- Added .ToString() here
+            profile.UserId.ToString(),
+            profile.StudentNumber,
             profile.FirstName,
             profile.LastName,
             profile.SystemHeadline,
@@ -37,6 +76,7 @@ public class ProfileService : IProfileService
         profile.LastName = dto.LastName;
         profile.SystemHeadline = dto.Headline;
         profile.AboutBio = dto.Bio;
+        profile.StudentNumber = dto.StudentNumber;
 
         _unitOfWork.UserProfiles.Update(profile);
         await _unitOfWork.SaveChangesAsync();

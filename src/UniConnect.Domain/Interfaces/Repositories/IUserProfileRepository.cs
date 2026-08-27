@@ -8,6 +8,7 @@ public interface IUserProfileRepository
     Task<UserProfile?> GetProfileWithDetailsAsync(Guid profileId, CancellationToken cancellationToken = default);
     Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, CancellationToken cancellationToken = default);
     Task AddAsync(UserProfile profile, CancellationToken cancellationToken = default);
+    
     void Update(UserProfile profile);
 
     // Skill & Endorsement operations within Profile context
