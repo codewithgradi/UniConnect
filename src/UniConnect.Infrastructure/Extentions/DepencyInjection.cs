@@ -17,8 +17,11 @@ public static class DependencyInjection
         services.AddScoped<IDirectMessageRepository, DirectMessageRepository>();
         services.AddScoped<IOpportunityRepository, OpportunityRepository>();
         services.AddScoped<IInstitutionalEventRepository, InstitutionalEventRepository>();
-
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+        services.AddScoped<IUserAnalyticsRepository, UserAnalyticsRepository>();
+        services.AddScoped<ISkillRepository, SkillRepository>();
+
 
         return services;
     }
@@ -26,11 +29,14 @@ public static class DependencyInjection
     {
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IBusinessService, BusinessService>();
+        services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IConnectionService, ConnectionService>();
         services.AddScoped<IMessagingService, MessagingService>();
         services.AddScoped<IOpportunityService, OpportunityService>();
         services.AddScoped<IInstitutionalService, InstitutionalService>();
+        services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+        services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
 
         return services;
     }

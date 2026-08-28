@@ -1,5 +1,6 @@
 using UniConnect.Application.DTOs;
 using UniConnect.Domain.Entities;
+using UniConnect.Domain.Enums;
 using UniConnect.Domain.Interfaces.Repositories;
 
 namespace UniConnect.Application.Services;
@@ -12,8 +13,17 @@ public class OpportunityService : IOpportunityService
     {
         _unitOfWork = unitOfWork;
     }
+    public async Task<IEnumerable<Opportunity>> GetPendingOpportunitiesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.Opportunities.GetPendingOpportunitiesAsync(cancellationToken);
+    }
 
-    public async Task CreateOpportunityAsync(Guid businessProfileId, CreateOpportunityDto dto)
+    public async Task<IEnumerable<Opportunity>> GetMyOpportunitiesAsync(Guid businessProfileId, CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.Opportunities.GetByBusinessProfileIdAsync(businessProfileId, cancellationToken);
+    }
+
+    public async Task CreateOpportunityAsync(Guid businessProfileId, CreateOpportunityDto dto, CancellationToken cancellationToken = default)
     {
         var opportunity = new Opportunity
         {
@@ -22,18 +32,27 @@ public class OpportunityService : IOpportunityService
             Title = dto.Title,
             Description = dto.Description,
             TargetProgramme = dto.TargetProgramme,
-            Status = Domain.Enums.OpportunityStatus.PendingApproval, // Active
+            Status = OpportunityStatus.PendingApproval,
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        await _unitOfWork.Opportunities.AddAsync(opportunity);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.Opportunities.AddAsync(opportunity, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ApplyForJobAsync(Guid opportunityId, Guid applicantId, string cvFileUrl)
+    public async Task ApplyForJobAsync(Guid opportunityId, Guid applicantId, string cvFileUrl, CancellationToken cancellationToken = default)
     {
-        var hasApplied = await _unitOfWork.Opportunities.HasUserAppliedAsync(opportunityId, applicantId);
-        if (hasApplied) throw new InvalidOperationException("User has already applied for this role.");
+        var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(opportunityId, cancellationToken);
+        if (opportunity == null || opportunity.Status != OpportunityStatus.Published)
+        {
+            throw new KeyNotFoundException("Opportunity is not active or does not exist.");
+        }
+
+        var hasApplied = await _unitOfWork.Opportunities.HasUserAppliedAsync(opportunityId, applicantId, cancellationToken);
+        if (hasApplied)
+        {
+            throw new InvalidOperationException("User has already applied for this role.");
+        }
 
         var application = new JobApplication
         {
@@ -44,7 +63,44 @@ public class OpportunityService : IOpportunityService
             AppliedAtUtc = DateTime.UtcNow
         };
 
-        await _unitOfWork.Opportunities.AddApplicationAsync(application);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.Opportunities.AddApplicationAsync(application, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Opportunity>> GetActiveOpportunitiesAsync(string? targetProgramme, CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.Opportunities.GetActiveOpportunitiesAsync(targetProgramme, cancellationToken);
+    }
+
+    public async Task<Opportunity?> GetByIdAsync(Guid opportunityId, CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.Opportunities.GetByIdAsync(opportunityId, cancellationToken);
+    }
+
+    public async Task ApproveOpportunityAsync(Guid opportunityId, CancellationToken cancellationToken = default)
+    {
+        var opportunity = await GetRequiredOpportunityAsync(opportunityId, cancellationToken);
+        opportunity.Status = OpportunityStatus.Published;
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RejectOpportunityAsync(Guid opportunityId, CancellationToken cancellationToken = default)
+    {
+        var opportunity = await GetRequiredOpportunityAsync(opportunityId, cancellationToken);
+        opportunity.Status = OpportunityStatus.Rejected;
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task CloseOpportunityAsync(Guid opportunityId, CancellationToken cancellationToken = default)
+    {
+        var opportunity = await GetRequiredOpportunityAsync(opportunityId, cancellationToken);
+        opportunity.Status = OpportunityStatus.Closed;
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Opportunity> GetRequiredOpportunityAsync(Guid opportunityId, CancellationToken cancellationToken)
+    {
+        var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(opportunityId, cancellationToken);
+        return opportunity ?? throw new KeyNotFoundException($"Opportunity with ID {opportunityId} was not found.");
     }
 }

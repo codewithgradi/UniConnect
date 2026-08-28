@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using UniConnect.Domain.Enums;
 namespace UniConnect.Application.DTOs;
 
 public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
@@ -21,3 +23,27 @@ public record CreateOpportunityDto(string Title, string Description, string Targ
 
 public record CreateEventDto(string Title, string Description, DateTime EventDate);
 public record EventDto(Guid Id, string Title, string Description, DateTime EventDate);
+public record SkillDto(Guid Id, string Name);
+
+public record CreateSkillDto(string Name);
+
+public record SendMessageDto(
+    Guid ReceiverId,
+    string Content
+);
+public record MarkAsReadDto(
+    IEnumerable<Guid> MessageIds
+);
+public record ApplyJobDto(
+    string CvFileUrl
+);
+public record RegisterRequestDto(
+    string Email,
+    string Password,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))] UserType UserType,
+    string? FirstName,
+    string? LastName,
+    string? Programme,
+    string? CompanyName,
+    string? studentNumber
+);

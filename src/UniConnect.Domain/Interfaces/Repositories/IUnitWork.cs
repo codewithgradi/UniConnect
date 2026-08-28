@@ -10,6 +10,7 @@ public interface IUnitOfWork : IDisposable
     IDirectMessageRepository DirectMessages { get; }
     IOpportunityRepository Opportunities { get; }
     IInstitutionalEventRepository InstitutionalEvents { get; }
+    ISkillRepository Skills{ get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

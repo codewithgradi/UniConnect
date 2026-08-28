@@ -1,12 +1,14 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniConnect.Application.Services;
 
 namespace UniConnect.Api.Controllers;
 
+[ApiController]
+[Route("api/connections")]
 [Authorize]
-[Tags("Connections")]
-public class ConnectionsController : ApiControllerBase
+public class ConnectionsController : ControllerBase
 {
     private readonly IConnectionService _connectionService;
 
@@ -15,17 +17,89 @@ public class ConnectionsController : ApiControllerBase
         _connectionService = connectionService;
     }
 
-    [HttpPost("request/{receiverId:guid}")]
-    public async Task<IActionResult> SendRequest(Guid receiverId)
+    [HttpGet]
+    public async Task<IActionResult> GetMyConnections(CancellationToken cancellationToken)
     {
-        await _connectionService.SendConnectionRequestAsync(CurrentUserId, receiverId);
-        return Ok(new { Message = "Connection request sent." });
+        var userId = GetCurrentUserId();
+        var connections = await _connectionService.GetUserConnectionsAsync(userId, cancellationToken);
+        return Ok(connections);
     }
 
-    [HttpPost("accept/{requesterId:guid}")]
-    public async Task<IActionResult> AcceptRequest(Guid requesterId)
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPendingRequests(CancellationToken cancellationToken)
     {
-        await _connectionService.AcceptConnectionAsync(requesterId, CurrentUserId);
-        return Ok(new { Message = "Connection accepted." });
+        var userId = GetCurrentUserId();
+        var requests = await _connectionService.GetPendingRequestsAsync(userId, cancellationToken);
+        return Ok(requests);
+    }
+
+    [HttpPost("request/{receiverId:guid}")]
+    public async Task<IActionResult> SendRequest(Guid receiverId, CancellationToken cancellationToken)
+    {
+        var requesterId = GetCurrentUserId();
+        try
+        {
+            await _connectionService.SendConnectionRequestAsync(requesterId, receiverId, cancellationToken);
+            return Ok(new { message = "Connection request sent." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("accept/{requesterId:guid}")]
+    public async Task<IActionResult> AcceptRequest(Guid requesterId, CancellationToken cancellationToken)
+    {
+        var receiverId = GetCurrentUserId();
+        try
+        {
+            await _connectionService.AcceptConnectionAsync(requesterId, receiverId, cancellationToken);
+            return Ok(new { message = "Connection request accepted." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("reject/{requesterId:guid}")]
+    public async Task<IActionResult> RejectRequest(Guid requesterId, CancellationToken cancellationToken)
+    {
+        var receiverId = GetCurrentUserId();
+        try
+        {
+            await _connectionService.RejectConnectionAsync(requesterId, receiverId, cancellationToken);
+            return Ok(new { message = "Connection request rejected." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{targetUserId:guid}")]
+    public async Task<IActionResult> RemoveConnection(Guid targetUserId, CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        try
+        {
+            await _connectionService.RemoveConnectionAsync(userId, targetUserId, cancellationToken);
+            return Ok(new { message = "Connection removed successfully." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var nameIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(nameIdentifier, out var userId))
+        {
+            return userId;
+        }
+        throw new UnauthorizedAccessException("Invalid or missing user ID claim.");
     }
 }

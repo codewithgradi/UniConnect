@@ -12,6 +12,6 @@ public class Opportunity
     public string TargetProgramme { get; set; } = string.Empty;
     public OpportunityStatus Status { get; set; } = OpportunityStatus.PendingApproval;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-
+    
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
 }

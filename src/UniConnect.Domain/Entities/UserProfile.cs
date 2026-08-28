@@ -11,7 +11,7 @@ public class UserProfile
     public string? CvFileUrl { get; set; }
     public string StudentNumber { get; set; }=string.Empty;
     public bool IsPublic { get; set; } = true;
-    public string Programme { get; set; } = string.Empty; // For Career Pathway Matching
+    public string Programme { get; set; } = string.Empty; 
 
     public ApplicationUser User { get; set; } = null!;
     public ICollection<UserSkill> UserSkills { get; set; } = new List<UserSkill>();

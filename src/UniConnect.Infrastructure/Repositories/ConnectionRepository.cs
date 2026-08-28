@@ -27,7 +27,7 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     public async Task<IEnumerable<Connection>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Connections
-            .Where(c => c.ReceiverId == userId && c.Status == 0) // 0 = Pending
+            .Where(c => c.ReceiverId == userId && c.Status == ConnectionStatus.Pending) 
             .ToListAsync(cancellationToken);
     }
 

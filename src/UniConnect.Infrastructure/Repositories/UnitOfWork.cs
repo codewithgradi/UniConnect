@@ -17,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
     public IDirectMessageRepository DirectMessages { get; }
     public IOpportunityRepository Opportunities { get; }
     public IInstitutionalEventRepository InstitutionalEvents { get; }
+    public ISkillRepository Skills { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -30,6 +31,7 @@ public class UnitOfWork : IUnitOfWork
         DirectMessages = new DirectMessageRepository(_dbContext);
         Opportunities = new OpportunityRepository(_dbContext);
         InstitutionalEvents = new InstitutionalEventRepository(_dbContext);
+        Skills = new SkillRepository(_dbContext);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

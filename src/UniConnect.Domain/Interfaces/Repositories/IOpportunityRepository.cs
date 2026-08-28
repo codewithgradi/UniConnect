@@ -4,6 +4,8 @@ namespace UniConnect.Domain.Interfaces.Repositories;
 
 public interface IOpportunityRepository
 {
+    Task<IEnumerable<Opportunity>> GetPendingOpportunitiesAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<Opportunity>> GetByBusinessProfileIdAsync(Guid businessProfileId, CancellationToken cancellationToken = default);
     Task<Opportunity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Opportunity?> GetWithApplicationsAsync(Guid opportunityId, CancellationToken cancellationToken = default);
     Task<IEnumerable<Opportunity>> GetActiveOpportunitiesAsync(string? targetProgramme, CancellationToken cancellationToken = default);

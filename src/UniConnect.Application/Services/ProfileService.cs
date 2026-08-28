@@ -38,11 +38,10 @@ public class ProfileService : IProfileService
         await _unitOfWork.UserProfiles.AddAsync(profile, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Make sure the DTO positional arguments EXACTLY match the record parameter order
         return new UserProfileDto(
             profile.Id,
             profile.UserId.ToString(),
-            profile.FirstName,        // Match order of UserProfileDto definition
+            profile.FirstName,        
             profile.LastName,
             profile.SystemHeadline,
             profile.AboutBio,

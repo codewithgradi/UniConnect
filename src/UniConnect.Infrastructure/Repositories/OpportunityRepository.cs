@@ -9,7 +9,21 @@ namespace UniConnect.Infrastructure.Repositories;
 public class OpportunityRepository : RepositoryBase<Opportunity>, IOpportunityRepository
 {
     public OpportunityRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+    public async Task<IEnumerable<Opportunity>> GetPendingOpportunitiesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Opportunities
+            .Where(o => o.Status == OpportunityStatus.PendingApproval)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
 
+    public async Task<IEnumerable<Opportunity>> GetByBusinessProfileIdAsync(Guid businessProfileId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Opportunities
+            .Where(o => o.BusinessProfileId == businessProfileId)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
     public async Task<Opportunity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Opportunities

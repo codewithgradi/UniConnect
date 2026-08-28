@@ -1,9 +1,11 @@
+using System.Text.Json.Serialization;
 using Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
-using UniConnect.Application;
 using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
+using UniConnect.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,26 +14,30 @@ var connectionString = builder.Configuration.GetConnectionString("DevDB");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 2. Add ASP.NET Core Identity API Endpoints
-builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false;
-    options.SignIn.RequireConfirmedEmail = false;
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequireNonAlphanumeric = false;
-    options.User.RequireUniqueEmail = true;
-})
-.AddRoles<ApplicationRole>()
-.AddEntityFrameworkStores<ApplicationDbContext>();
+// 2. Identity & Roles Configuration
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<ApplicationRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>();
 
-// 3. Register Custom Infrastructure & Application Layer Dependencies
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
+// 3. Infrastructure & Application Dependencies
 builder.Services.AddInfrastructureRepositories().AddApplicationServices();
 
-// 4. Add Controllers
-builder.Services.AddControllers();
+// 4. Configure JSON options for BOTH Controllers AND Minimal APIs/OpenAPI
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
-// 5. Configure Native .NET 10 OpenAPI with Bearer Authorization
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// 5. Configure Native OpenAPI with Bearer Authorization
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -62,8 +68,9 @@ builder.Services.AddOpenApi(options =>
         {
             foreach (var path in document.Paths)
             {
-                // Skip adding token requirement for identity routes
-                if (path.Key.StartsWith("/api/identity", StringComparison.OrdinalIgnoreCase))
+                // Skip adding token requirement for identity or public auth routes
+                if (path.Key.StartsWith("/api/identity", StringComparison.OrdinalIgnoreCase) ||
+                    path.Key.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

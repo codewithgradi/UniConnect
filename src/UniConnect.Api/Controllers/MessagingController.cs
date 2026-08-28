@@ -1,33 +1,77 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniConnect.Application.DTOs;
 using UniConnect.Application.Services;
 
 namespace UniConnect.Api.Controllers;
 
+[ApiController]
+[Route("api/messages")]
 [Authorize]
-[Tags("Messaging")]
-public class MessagingController : ApiControllerBase
+public class MessagesController : ControllerBase
 {
     private readonly IMessagingService _messagingService;
 
-    public MessagingController(IMessagingService messagingService)
+    public MessagesController(IMessagingService messagingService)
     {
         _messagingService = messagingService;
     }
 
-    [HttpGet("conversation/{recipientId:guid}")]
-    public async Task<IActionResult> GetConversation(Guid recipientId)
+    [HttpPost]
+    public async Task<IActionResult> SendMessage([FromBody] SendMessageDto dto, CancellationToken cancellationToken)
     {
-        var conversation = await _messagingService.GetConversationAsync(CurrentUserId, recipientId);
-        return Ok(conversation);
+        var senderId = GetCurrentUserId();
+        try
+        {
+            var result = await _messagingService.SendMessageAsync(senderId, dto.ReceiverId, dto.Content, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
-    [HttpPost("send/{recipientId:guid}")]
-    public async Task<IActionResult> SendMessage(Guid recipientId, [FromBody] SendMessageRequest request)
+    [HttpGet("conversation/{otherUserId:guid}")]
+    public async Task<IActionResult> GetConversation(
+        Guid otherUserId,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50,
+        CancellationToken cancellationToken = default)
     {
-        await _messagingService.SendMessageAsync(CurrentUserId, recipientId, request.Content);
-        return Ok(new { Message = "Message sent successfully." });
+        var currentUserId = GetCurrentUserId();
+        var messages = await _messagingService.GetConversationAsync(currentUserId, otherUserId, skip, take, cancellationToken);
+        return Ok(messages);
+    }
+
+    [HttpGet("unread-count")]
+    public async Task<IActionResult> GetUnreadCount(CancellationToken cancellationToken)
+    {
+        var currentUserId = GetCurrentUserId();
+        var count = await _messagingService.GetUnreadCountAsync(currentUserId, cancellationToken);
+        return Ok(new { unreadCount = count });
+    }
+
+    [HttpPatch("read")]
+    public async Task<IActionResult> MarkAsRead([FromBody] MarkAsReadDto dto, CancellationToken cancellationToken)
+    {
+        var currentUserId = GetCurrentUserId();
+        await _messagingService.MarkMessagesAsReadAsync(currentUserId, dto.MessageIds, cancellationToken);
+        return Ok(new { message = "Messages marked as read." });
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var nameIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(nameIdentifier, out var userId))
+        {
+            return userId;
+        }
+        throw new UnauthorizedAccessException("Invalid or missing user ID claim.");
     }
 }
-
-public record SendMessageRequest(string Content);

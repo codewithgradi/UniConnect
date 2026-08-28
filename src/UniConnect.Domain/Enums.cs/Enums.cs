@@ -1,4 +1,5 @@
 namespace UniConnect.Domain.Enums;
+
 public enum UserType
 {
     Student = 1,
@@ -19,7 +20,8 @@ public enum OpportunityStatus
     Draft = 1,
     PendingApproval = 2,
     Published = 3,
-    Closed = 4
+    Closed = 4,
+    Rejected = 5
 }
 
 public enum ConnectionStatus
