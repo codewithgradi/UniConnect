@@ -2,16 +2,72 @@ using System.Text.Json.Serialization;
 using UniConnect.Domain.Enums;
 namespace UniConnect.Application.DTOs;
 
-public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
-public record UpdateProfileDto(string FirstName, string LastName, string Headline, string Bio, string StudentNumber);
+
 public record CreateProfileDto(
     string FirstName,
     string LastName,
+    string StudentNumber,
     string Programme,
-    string? Headline,
-    string? Bio,
-    string? StudentNumber
+    string Headline,
+    string Bio
 );
+
+public record UpdateProfileDto(
+    string FirstName,
+    string LastName,
+    string StudentNumber,
+    string Headline,
+    string Bio,
+    string Programme
+);
+
+public record AddExperienceDto(
+    string Title,
+    string CompanyName,
+    string Location,
+    DateTime StartDate,
+    DateTime? EndDate,
+    bool IsCurrent);
+
+public record ExperienceDto(
+    Guid Id,
+    string Title,
+    string Company,
+    DateTime StartDate,
+    DateTime? EndDate,
+    bool IsCurrent
+);
+
+public record AddCertificationDto(
+    string Name,
+    string IssuingOrganization,
+    DateTime IssueDate,
+    string CredentialUrl
+);
+
+public record CertificationDto(
+    Guid Id,
+    string Name,
+    string IssuingOrganization,
+    DateTime IssueDate,
+    string CredentialUrl
+);
+
+public record DetailedUserProfileDto(
+    Guid Id,
+    string UserId,
+    string FirstName,
+    string LastName,
+    string StudentNumber,
+    string Programme,
+    string SystemHeadline,
+    string AboutBio,
+    IEnumerable<ExperienceDto> Experiences,
+    IEnumerable<CertificationDto> Certifications,
+    IEnumerable<SkillDto> Skills
+);
+public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
+
 public record BusinessProfileDto(Guid Id, string CompanyName, string Industry, string WebsiteUrl);
 public record CreateBusinessDto(string CompanyName, string RegistrationNumber, string Industry, string WebsiteUrl);
 

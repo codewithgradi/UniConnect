@@ -8,16 +8,38 @@ namespace UniConnect.Infrastructure.Repositories;
 public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRepository
 {
     public UserProfileRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+    public void AddExperience(Experience experience)
+    {
+        _dbContext.Experiences.Add(experience);
+    }
+    public void AddCertification(Certification certification )
+    {
+        _dbContext.Certifications.Add(certification);
+    }
 
     public async Task<UserProfile?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.UserProfiles
+                    .Include(p => p.Experiences)
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+    }
+
+    public async Task<UserProfile?> GetProfileWithDetailsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.UserProfiles
+            .AsSplitQuery()
+            .Include(p => p.Experiences)
+            .Include(p => p.Certifications)
+            .Include(p => p.UserSkills)
+                .ThenInclude(us => us.Skill)
+            .Include(p => p.ReceivedRecommendations)
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
     }
 
     public async Task<UserProfile?> GetProfileWithDetailsAsync(Guid profileId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.UserProfiles
+            .AsSplitQuery()
             .Include(p => p.Experiences)
             .Include(p => p.Certifications)
             .Include(p => p.UserSkills)

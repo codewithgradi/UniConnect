@@ -1,20 +1,32 @@
 using System.Text.Json.Serialization;
 using Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using UniConnect.Api.Mcp;
 using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
 using UniConnect.Infrastructure.Identity;
 
+// 1. MUST load .env variables BEFORE WebApplication.CreateBuilder initializes configuration
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Add PostgreSQL DbContext
-var connectionString = builder.Configuration.GetConnectionString("DevDB");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// 2. Explicitly append environment variables to builder.Configuration
+builder.Configuration.AddEnvironmentVariables();
 
-// 2. Identity & Roles Configuration
+// 3. Core MVC & Controller Services
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// Configure JSON options for Minimal APIs / HTTP handlers
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// 4. Identity & Authorization Configuration
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<ApplicationRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -23,30 +35,26 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
-// 3. Infrastructure & Application Dependencies
-builder.Services.AddInfrastructureRepositories().AddApplicationServices();
+// 5. MCP Tool Registrations
+builder.Services.AddScoped<UserProfileMcpTool>();
 
-// 4. Configure JSON options for BOTH Controllers AND Minimal APIs/OpenAPI
-builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
-{
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
+// 6. Infrastructure & Domain Service Registrations
+builder.Services
+    .AllowCors(builder.Configuration)
+    .LoadDb(builder.Configuration)
+    .AddGlobalException()
+    .AddInfrastructureRepositories()
+    .AddApplicationServices()
+    .ConfigureMcp()
+    .AddOpenAI(builder.Configuration);
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-
-// 5. Configure Native OpenAPI with Bearer Authorization
+// 7. OpenAPI Specification with Bearer JWT Setup
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        document.Info ??= new OpenApiInfo();
-        document.Info.Title = "UniConnect.Api";
-        document.Info.Version = "v1";
+        document.Info ??= new OpenApiInfo { Title = "UniConnect.Api", Version = "v1" };
 
-        // Define Bearer Security Scheme
         var securityScheme = new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -61,14 +69,15 @@ builder.Services.AddOpenApi(options =>
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes["Bearer"] = securityScheme;
 
-        // Apply security per operation instead of globally to leave auth endpoints public
         var schemeReference = new OpenApiSecuritySchemeReference("Bearer", document);
 
-        if (document.Paths != null)
+        if (document.Paths is not null)
         {
             foreach (var path in document.Paths)
             {
-                // Skip adding token requirement for identity or public auth routes
+                if (path.Value?.Operations is null) continue;
+
+                // Skip security requirements for public identity or auth endpoints
                 if (path.Key.StartsWith("/api/identity", StringComparison.OrdinalIgnoreCase) ||
                     path.Key.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase))
                 {
@@ -92,10 +101,13 @@ builder.Services.AddOpenApi(options =>
 
 var app = builder.Build();
 
-// 6. Configure HTTP Request Pipeline
+// 8. Middleware Pipeline Setup
+app.UseExceptionHandler();
+app.UseCors("AllowNextJs");
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi(); // Serves /openapi/v1.json
+    app.MapOpenApi();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "UniConnect.Api v1");
@@ -107,13 +119,13 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 7. Map Identity Auth Routes (Public)
+// 9. Endpoint Mappings
 app.MapGroup("/api/identity")
    .MapIdentityApi<ApplicationUser>()
    .WithTags("Auth")
    .AllowAnonymous();
 
-// 8. Map Application Controllers
+app.MapMcp("/mcp");
 app.MapControllers();
 
 app.Run();
