@@ -1,7 +1,10 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
 using Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi;
+using UniConnect.Api.Hubs;
 using UniConnect.Api.Mcp;
 using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
@@ -13,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+// 1. Controller & JSON Configuration
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -23,11 +27,13 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+// 2. Identity & Database Context Setup
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<ApplicationRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>();
 
+// 3. Cloudflare R2 S3 Client Setup
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
@@ -45,8 +51,30 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
     );
 });
 
+// 4. Real-time & Authentication Setup
+builder.Services.AddSignalR();
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
+// Post-configure existing Identity.Bearer scheme to handle SignalR WebSocket query tokens
+builder.Services.PostConfigure<BearerTokenOptions>(IdentityConstants.BearerScheme, options =>
+{
+    options.Events = new BearerTokenEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // 5. MCP Tool Registrations
 builder.Services.AddScoped<UserProfileMcpTool>();
@@ -139,6 +167,7 @@ app.MapGroup("/api/identity")
    .AllowAnonymous();
 
 app.MapMcp("/mcp");
+app.MapHub<ChatHub>("/hubs/chat");
 app.MapControllers();
 
 app.Run();

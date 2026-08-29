@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using UniConnect.Api.Hubs;
 using UniConnect.Application.DTOs;
 using UniConnect.Application.Services;
 
@@ -12,10 +14,12 @@ namespace UniConnect.Api.Controllers;
 public class MessagesController : ControllerBase
 {
     private readonly IMessagingService _messagingService;
+    private readonly IHubContext<ChatHub> _hubContext;
 
-    public MessagesController(IMessagingService messagingService)
+    public MessagesController(IMessagingService messagingService, IHubContext<ChatHub> hubContext)
     {
         _messagingService = messagingService;
+        _hubContext=hubContext;
     }
 
     [HttpPost]
@@ -25,6 +29,14 @@ public class MessagesController : ControllerBase
         try
         {
             var result = await _messagingService.SendMessageAsync(senderId, dto.ReceiverId, dto.Content, cancellationToken);
+            await _hubContext.Clients.User(dto.ReceiverId.ToString())
+            .SendAsync("ReceiveMessage", new
+            {
+                id = result.Id,
+                senderId = result.SenderId,
+                content = result.Content,
+                sentAt = result.SentAt
+            });
             return Ok(result);
         }
         catch (ArgumentException ex)
