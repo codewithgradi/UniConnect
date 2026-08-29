@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Amazon.S3;
 using Infrastructure.Persistence;
 using Microsoft.OpenApi;
 using UniConnect.Api.Mcp;
@@ -6,31 +7,43 @@ using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
 using UniConnect.Infrastructure.Identity;
 
-// 1. MUST load .env variables BEFORE WebApplication.CreateBuilder initializes configuration
 DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 2. Explicitly append environment variables to builder.Configuration
 builder.Configuration.AddEnvironmentVariables();
 
-// 3. Core MVC & Controller Services
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-// Configure JSON options for Minimal APIs / HTTP handlers
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-// 4. Identity & Authorization Configuration
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<ApplicationRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>();
+
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var accountId = config["R2:AccountId"];
+
+    var s3Config = new AmazonS3Config
+    {
+        ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com"
+    };
+
+    return new AmazonS3Client(
+        config["R2:AccessKeyId"],
+        config["R2:SecretAccessKey"],
+        s3Config
+    );
+});
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();

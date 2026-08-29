@@ -1,4 +1,5 @@
 using System.ClientModel;
+using Amazon.S3;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
 using UniConnect.Application.Services;
 using UniConnect.Domain.Interfaces.Repositories;
+using UniConnect.Infrastructure.AwsS3;
 using UniConnect.Infrastructure.Repositories;
 
 namespace UniConnect.Infrastructure;
@@ -137,6 +139,7 @@ public static class DependencyInjection
         return services;
     }
 
+
     public static IServiceCollection AddInfrastructureRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
@@ -151,6 +154,7 @@ public static class DependencyInjection
         services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
         services.AddScoped<IUserAnalyticsRepository, UserAnalyticsRepository>();
         services.AddScoped<ISkillRepository, SkillRepository>();
+        services.AddScoped<IR2StorageService, R2StorageService>();
 
         return services;
     }

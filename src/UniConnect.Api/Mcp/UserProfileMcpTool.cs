@@ -22,7 +22,18 @@ public class UserProfileMcpTool
         [Description("The unique identifier (Guid) of the student or alumnus.")] Guid userId,
         CancellationToken cancellationToken = default)
     {
-
+        return await GetUserProfileAsyncGeneral(userId, cancellationToken);
+    }
+    [McpServerTool(Name ="get_user_cv_url"),
+    Description("This tool returns user cv url saved in userprofile table")
+    ]
+    public async Task<string> GetUserCvUrl(Guid userId, CancellationToken cancellationToken)
+    {
+        var profile = await GetUserProfileAsyncGeneral(userId, cancellationToken);
+        return profile.CvFileUrl;
+    }
+    private async Task<DetailedUserProfileDto> GetUserProfileAsyncGeneral(Guid userId, CancellationToken cancellationToken)
+    {
         await using var scope = _serviceProvider.CreateAsyncScope();
         var profileService = scope.ServiceProvider.GetRequiredService<IProfileService>();
 

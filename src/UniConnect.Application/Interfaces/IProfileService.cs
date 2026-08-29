@@ -4,6 +4,7 @@ namespace UniConnect.Application.Services;
 
 public interface IProfileService
 {
+    Task<string?> UpdateCvUrlInDbAsync(Guid CurrentUserId, string newCvUrl, CancellationToken token);
     Task SaveCvUrlToDbAsync(Guid userId, string url, CancellationToken cancellationToken = default);
     Task<DetailedUserProfileDto> CreateProfileAsync(Guid userId, CreateProfileDto dto, CancellationToken cancellationToken = default);
     Task<DetailedUserProfileDto?> GetProfileByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);

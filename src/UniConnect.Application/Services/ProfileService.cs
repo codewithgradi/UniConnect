@@ -178,6 +178,7 @@ public class ProfileService : IProfileService
             p.Programme,
             p.SystemHeadline,
             p.AboutBio,
+            p.CvFileUrl,
             p.Experiences?.Select(e => new ExperienceDto(e.Id, e.Title, e.Company, e.StartDate, e.EndDate, e.IsCurrent)) ?? Array.Empty<ExperienceDto>(),
             p.Certifications?.Select(c => new CertificationDto(c.Id, c.Name, c.IssuingOrganization, c.IssueDate, c.CredentialUrl)) ?? Array.Empty<CertificationDto>(),
             p.UserSkills?.Select(s => new SkillDto(s.SkillId, s.Skill?.Name ?? string.Empty)) ?? Array.Empty<SkillDto>()
@@ -209,5 +210,18 @@ public class ProfileService : IProfileService
         }
         await _unitOfWork.UserProfiles.SaveCvUrlToDbAsync(profileId, url, cancellationToken);
         await _unitOfWork.SaveChangesAsync();
+    }
+    public async Task<string?> UpdateCvUrlInDbAsync(Guid userId, string newUrl, CancellationToken token)
+    {
+        var profile = await _unitOfWork.UserProfiles.GetByUserIdAsync(userId, token);
+        if (profile == null) throw new KeyNotFoundException("Profile not found.");
+
+        var oldUrl = profile.CvFileUrl;
+
+        profile.CvFileUrl = newUrl;
+
+        await _unitOfWork.SaveChangesAsync(token);
+
+        return oldUrl;
     }
 }

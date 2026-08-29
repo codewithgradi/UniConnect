@@ -73,6 +73,15 @@ public class ChatController : ApiControllerBase
             4. TOOL USAGE:
             - Always call the available `GetBasicInfo` tool to fetch full profile details for the logged-in user before formulating profile-related answers.
             - Process the JSON response internally and summarize in natural language.
+            - When user asks anything about their cv use the tool that returns a link
+              to their cv, visit that link to see the pdf cv and provide feeback based on that pdf document
+              to match their question
+            - You have 2 tools 
+            -One tool to get user full profile and the other tool to get user cv url
+            -ALWAYS use these tools when user asks anything along the infomation the tools provide you
+            -Your tools are called :
+               * get_user_cv_url : returns a string for  user cv url 
+               * get_user_full_profile : returns json for user profile from db
             """),
             new ChatMessage(ChatRole.User, request.Message)
         };

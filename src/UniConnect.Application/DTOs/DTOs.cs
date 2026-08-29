@@ -62,7 +62,9 @@ public record DetailedUserProfileDto(
     string Programme,
     string SystemHeadline,
     string AboutBio,
-    IEnumerable<ExperienceDto> Experiences,
+    string CvFileUrl,
+
+IEnumerable<ExperienceDto> Experiences,
     IEnumerable<CertificationDto> Certifications,
     IEnumerable<SkillDto> Skills
 );
