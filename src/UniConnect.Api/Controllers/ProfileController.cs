@@ -9,7 +9,7 @@ namespace UniConnect.Api.Controllers;
 [ApiController]
 [Route("api/profiles")]
 [Authorize]
-public class ProfilesController : ControllerBase
+public class ProfilesController : ApiControllerBase
 {
     private readonly IProfileService _profileService;
 
@@ -34,6 +34,12 @@ public class ProfilesController : ControllerBase
         if (profile == null) return NotFound(new { message = "Profile not found." });
 
         return Ok(profile);
+    }
+    [HttpPatch()]
+    public async Task<IActionResult> SaveProfileToDb([FromBody] string url, CancellationToken cancellationToken)
+    {
+        await _profileService.SaveCvUrlToDbAsync(CurrentUserId, url, cancellationToken);
+        return Ok("Cv url has been saved successfully");
     }
 
     [HttpGet("{profileId:guid}")]

@@ -23,6 +23,11 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
                     .Include(p => p.Experiences)
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
     }
+    public async Task<UserProfile?> GetByUserProfileIdAsync(Guid profileId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.UserProfiles
+            .FirstOrDefaultAsync(p => p.Id == profileId, cancellationToken); 
+    }
 
     public async Task<UserProfile?> GetProfileWithDetailsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
@@ -98,5 +103,17 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
             EndorsedByUserId = endorsedByUserId
         };
         await _dbContext.SkillEndorsements.AddAsync(endorsement, cancellationToken);
+    }
+
+    public async Task SaveCvUrlToDbAsync(Guid profileId, string url, CancellationToken token = default)
+    {
+        var userProfile = await GetByUserProfileIdAsync(profileId, token);
+        if (userProfile == null)
+        {
+            throw new KeyNotFoundException($"UserProfile with ID '{profileId}' was not found.");
+        }
+
+        // FIX 1: Assign to CvFileUrl, not GithubUrl
+        userProfile.CvFileUrl = url;
     }
 }

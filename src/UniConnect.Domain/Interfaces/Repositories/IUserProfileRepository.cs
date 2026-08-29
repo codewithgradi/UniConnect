@@ -11,7 +11,10 @@ public interface IUserProfileRepository
     Task AddAsync(UserProfile profile, CancellationToken cancellationToken = default);
     void Update(UserProfile profile);
     void AddExperience(Experience experience);
+    Task<UserProfile?> GetByUserProfileIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
     void AddCertification(Certification certification);
     Task AddSkillToProfileAsync(Guid profileId, Guid skillId, CancellationToken cancellationToken = default);
     Task EndorseSkillAsync(Guid targetProfileId, Guid skillId, Guid endorsedByUserId, CancellationToken cancellationToken = default);
+    Task SaveCvUrlToDbAsync(Guid profileId,string url, CancellationToken token);
 }

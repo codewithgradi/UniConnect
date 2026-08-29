@@ -12,25 +12,35 @@ public class ConnectionService : IConnectionService
     {
         _unitOfWork = unitOfWork;
     }
-
-    public async Task SendConnectionRequestAsync(Guid requesterId, Guid receiverId, CancellationToken cancellationToken = default)
+    public async Task SendConnectionRequestAsync(Guid requesterUserId, Guid targetProfileId, CancellationToken cancellationToken = default)
     {
-        if (requesterId == receiverId)
+        // 1. Fetch target profile using ITS PRIMARY KEY (Id), NOT UserId
+        var targetProfile = await _unitOfWork.UserProfiles.GetByUserProfileIdAsync(targetProfileId, cancellationToken);
+
+        if (targetProfile == null)
+        {
+            throw new KeyNotFoundException($"UserProfile with ID '{targetProfileId}' was not found.");
+        }
+
+        // 2. Prevent sending a connection request to oneself
+        if (requesterUserId == targetProfile.UserId)
         {
             throw new InvalidOperationException("You cannot send a connection request to yourself.");
         }
 
-        var existingConnection = await _unitOfWork.Connections.GetAsync(requesterId, receiverId, cancellationToken);
+        // 3. Check if a connection already exists using both AspNetUser IDs
+        var existingConnection = await _unitOfWork.Connections.GetAsync(requesterUserId, targetProfile.UserId, cancellationToken);
         if (existingConnection != null)
         {
-            throw new InvalidOperationException("A connection request or active connection already exists between these users.");
+            throw new InvalidOperationException("A connection request or active connection already exists.");
         }
 
+        // 4. Create and persist the connection
         var connection = new Connection
         {
             Id = Guid.NewGuid(),
-            RequesterId = requesterId,
-            ReceiverId = receiverId,
+            RequesterId = requesterUserId,
+            ReceiverId = targetProfile.UserId, // Target's AspNetUsers ID retrieved from profile
             Status = ConnectionStatus.Pending,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -38,7 +48,6 @@ public class ConnectionService : IConnectionService
         await _unitOfWork.Connections.AddAsync(connection, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
-
     public async Task AcceptConnectionAsync(Guid requesterId, Guid receiverId, CancellationToken cancellationToken = default)
     {
         var connection = await _unitOfWork.Connections.GetAsync(requesterId, receiverId, cancellationToken);

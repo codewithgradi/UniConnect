@@ -39,11 +39,11 @@ public class OpportunityRepository : RepositoryBase<Opportunity>, IOpportunityRe
 
     public async Task<IEnumerable<Opportunity>> GetActiveOpportunitiesAsync(string? targetProgramme, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Opportunities.Where(o => o.Status == OpportunityStatus.Published); // 1 = Active
+        var query = _dbContext.Opportunities.Where(o => o.Status == OpportunityStatus.Published);
 
         if (!string.IsNullOrWhiteSpace(targetProgramme))
         {
-            query = query.Where(o => o.TargetProgramme == targetProgramme);
+            query = query.Where(o => o.TargetProgramme != null && o.TargetProgramme.ToLower().Contains(targetProgramme.ToLower()));
         }
 
         return await query.OrderByDescending(o => o.CreatedAtUtc).ToListAsync(cancellationToken);

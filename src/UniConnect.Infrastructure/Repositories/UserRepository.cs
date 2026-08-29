@@ -15,7 +15,12 @@ public class UserRepository : RepositoryBase<ApplicationUser>, IUserRepository
         return await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
-
+    public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        // var userIdStr = userId.ToString();
+        return await _dbContext.Users
+            .AnyAsync(u => u.Id == userId, cancellationToken);
+    }
     public async Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Users

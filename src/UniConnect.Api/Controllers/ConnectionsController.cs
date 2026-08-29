@@ -8,7 +8,7 @@ namespace UniConnect.Api.Controllers;
 [ApiController]
 [Route("api/connections")]
 [Authorize]
-public class ConnectionsController : ControllerBase
+public class ConnectionsController : ApiControllerBase
 {
     private readonly IConnectionService _connectionService;
 
@@ -33,28 +33,31 @@ public class ConnectionsController : ControllerBase
         return Ok(requests);
     }
 
-    [HttpPost("request/{receiverId:guid}")]
-    public async Task<IActionResult> SendRequest(Guid receiverId, CancellationToken cancellationToken)
+    [HttpPost("{targetProfileId:guid}")]
+    public async Task<IActionResult> SendRequest(Guid targetProfileId, CancellationToken cancellationToken)
     {
-        var requesterId = GetCurrentUserId();
         try
         {
-            await _connectionService.SendConnectionRequestAsync(requesterId, receiverId, cancellationToken);
-            return Ok(new { message = "Connection request sent." });
+            Console.WriteLine($"logged in  user : {CurrentUserId}");
+            Console.WriteLine($"target user profile id  : {targetProfileId}");
+            await _connectionService.SendConnectionRequestAsync(CurrentUserId, targetProfileId, cancellationToken);
+            return Ok(new { message = "Connection request sent successfully." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
     }
-
     [HttpPatch("accept/{requesterId:guid}")]
     public async Task<IActionResult> AcceptRequest(Guid requesterId, CancellationToken cancellationToken)
     {
-        var receiverId = GetCurrentUserId();
         try
         {
-            await _connectionService.AcceptConnectionAsync(requesterId, receiverId, cancellationToken);
+            await _connectionService.AcceptConnectionAsync(requesterId, CurrentUserId, cancellationToken);
             return Ok(new { message = "Connection request accepted." });
         }
         catch (KeyNotFoundException ex)
@@ -66,10 +69,9 @@ public class ConnectionsController : ControllerBase
     [HttpPatch("reject/{requesterId:guid}")]
     public async Task<IActionResult> RejectRequest(Guid requesterId, CancellationToken cancellationToken)
     {
-        var receiverId = GetCurrentUserId();
         try
         {
-            await _connectionService.RejectConnectionAsync(requesterId, receiverId, cancellationToken);
+            await _connectionService.RejectConnectionAsync(requesterId, CurrentUserId, cancellationToken);
             return Ok(new { message = "Connection request rejected." });
         }
         catch (KeyNotFoundException ex)
@@ -81,10 +83,9 @@ public class ConnectionsController : ControllerBase
     [HttpDelete("{targetUserId:guid}")]
     public async Task<IActionResult> RemoveConnection(Guid targetUserId, CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
         try
         {
-            await _connectionService.RemoveConnectionAsync(userId, targetUserId, cancellationToken);
+            await _connectionService.RemoveConnectionAsync(CurrentUserId, targetUserId, cancellationToken);
             return Ok(new { message = "Connection removed successfully." });
         }
         catch (KeyNotFoundException ex)

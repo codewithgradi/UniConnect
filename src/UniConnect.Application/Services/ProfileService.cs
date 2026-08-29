@@ -128,7 +128,7 @@ public class ProfileService : IProfileService
         };
 
         _unitOfWork.UserProfiles.AddCertification(certification);
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CertificationDto(
@@ -196,5 +196,18 @@ public class ProfileService : IProfileService
     {
         await _unitOfWork.UserProfiles.EndorseSkillAsync(targetProfileId, skillId, endorsedByUserId, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SaveCvUrlToDbAsync(Guid userID, string url, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetProfileByUserIdAsync(userID);
+        var profileId = profile.Id;
+
+        if (string.IsNullOrEmpty(url))
+        {
+            throw new InvalidOperationException("url can not be empty");
+        }
+        await _unitOfWork.UserProfiles.SaveCvUrlToDbAsync(profileId, url, cancellationToken);
+        await _unitOfWork.SaveChangesAsync();
     }
 }

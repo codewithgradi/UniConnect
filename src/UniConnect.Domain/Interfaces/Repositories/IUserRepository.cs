@@ -5,6 +5,7 @@ namespace UniConnect.Domain.Interfaces.Repositories;
 
 public interface IUserRepository
 {
+    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<ApplicationUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<IEnumerable<ApplicationUser>> GetUsersByTypeAsync(UserType userType, CancellationToken cancellationToken = default);
