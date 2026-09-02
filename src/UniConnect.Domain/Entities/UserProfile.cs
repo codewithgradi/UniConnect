@@ -1,4 +1,5 @@
 namespace UniConnect.Domain.Entities;
+
 public class UserProfile
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -9,10 +10,9 @@ public class UserProfile
     public string AboutBio { get; set; } = string.Empty;
     public string? GithubUrl { get; set; }
     public string? CvFileUrl { get; set; }
-    public string StudentNumber { get; set; }=string.Empty;
+    public string StudentNumber { get; set; } = string.Empty;
     public bool IsPublic { get; set; } = true;
-    public string Programme { get; set; } = string.Empty; 
-
+    public string Programme { get; set; } = string.Empty;
     public ApplicationUser User { get; set; } = null!;
     public ICollection<UserSkill> UserSkills { get; set; } = new List<UserSkill>();
     public ICollection<Experience> Experiences { get; set; } = new List<Experience>();

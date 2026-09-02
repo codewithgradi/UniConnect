@@ -82,7 +82,14 @@ public record CreateOpportunityDto(string Title, string Description, string Targ
 public record CreateEventDto(string Title, string Description, DateTime EventDate);
 public record EventDto(Guid Id, string Title, string Description, DateTime EventDate);
 public record SkillDto(Guid Id, string Name);
-
+public record EmailRequest
+{
+    public required string To { get; init; }
+    public required string Subject { get; init; }
+    public required string HtmlBody { get; init; }
+    public string? TextBody { get; init; }
+    public string? From { get; init; } 
+}
 public record CreateSkillDto(string Name);
 
 public record SendMessageDto(

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using UniConnect.Domain;
 using UniConnect.Domain.Entities;
 
 namespace Infrastructure.Persistence;
@@ -109,6 +110,8 @@ public class ApplicationDbContext : IdentityDbContext<
             .WithMany()
             .HasForeignKey(se => se.EndorsedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+
 
         // 6. Recommendations
         modelBuilder.Entity<Recommendation>(b =>

@@ -1,11 +1,15 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
+using Infrastructure.Options;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi;
 using UniConnect.Api.Hubs;
 using UniConnect.Api.Mcp;
+using UniConnect.Application.Interfaces;
+using UniConnect.Application.Services;
+using UniConnect.Application.Services;
 using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
 using UniConnect.Infrastructure.Identity;
@@ -13,6 +17,19 @@ using UniConnect.Infrastructure.Identity;
 DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<BrevoSettings>(
+    builder.Configuration.GetSection(BrevoSettings.SectionName));
+// Register Redis Distributed Cache
+builder.Services.AddDistributedMemoryCache(options =>
+{
+    // options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    // options.InstanceName = "UniConnect_";
+});
+builder.Services.AddHttpClient();
+
+// Register your EmailService implementation
+builder.Services.AddHttpClient<IEmailService,EmailService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
 
 builder.Configuration.AddEnvironmentVariables();
 
@@ -155,7 +172,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
