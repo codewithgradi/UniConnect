@@ -53,7 +53,7 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
             .FirstOrDefaultAsync(p => p.Id == profileId, cancellationToken);
     }
 
-    public async Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.UserProfiles.AsQueryable();
 
@@ -61,8 +61,8 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
         {
             var term = searchTerm.ToLower();
             query = query.Where(p => p.FirstName.ToLower().Contains(term)
-                                  || p.LastName.ToLower().Contains(term)
-                                  || p.SystemHeadline.ToLower().Contains(term));
+                                    || p.LastName.ToLower().Contains(term)
+                                    || p.SystemHeadline.ToLower().Contains(term));
         }
 
         if (!string.IsNullOrWhiteSpace(programme))
@@ -70,9 +70,11 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
             query = query.Where(p => p.Programme == programme);
         }
 
-        return await query.ToListAsync(cancellationToken);
+        return await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
     }
-
     public async Task AddAsync(UserProfile profile, CancellationToken cancellationToken = default)
     {
         await _dbContext.UserProfiles.AddAsync(profile, cancellationToken);

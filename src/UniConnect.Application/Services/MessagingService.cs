@@ -77,4 +77,10 @@ public class MessagingService : IMessagingService
         await _unitOfWork.DirectMessages.MarkAsReadAsync(idsToUpdate, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<DirectMessageDtoForAll>> GetAllMessages(Guid userId, CancellationToken ct)
+    {
+        var mesages = await _unitOfWork.DirectMessages.GetAllMessages(userId, ct);
+        return mesages.Select(m=> new DirectMessageDtoForAll(m.Receiver, m.Content));
+    }
 }

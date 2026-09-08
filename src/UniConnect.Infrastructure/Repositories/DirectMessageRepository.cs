@@ -42,4 +42,9 @@ public class DirectMessageRepository : RepositoryBase<DirectMessage>, IDirectMes
             message.IsRead = true;
         }
     }
+
+    public async Task<ICollection<DirectMessage>> GetAllMessages(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.DirectMessages.Where(x=>x.Receiver.Id == userId ).ToListAsync();
+    }
 }

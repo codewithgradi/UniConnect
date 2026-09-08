@@ -79,4 +79,11 @@ public class PostRepository : RepositoryBase<Post>, IPostRepository
             await _dbContext.Reactions.AddAsync(reaction, cancellationToken);
         }
     }
+
+    public async Task<int> GetPostCount(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Posts
+            .Where(p => p.AuthorId == userId)
+            .CountAsync(cancellationToken);
+    }
 }

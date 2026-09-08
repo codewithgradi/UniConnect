@@ -9,7 +9,9 @@ using UniConnect.Api.Hubs;
 using UniConnect.Api.Mcp;
 using UniConnect.Application.Interfaces;
 using UniConnect.Application.Services;
-using UniConnect.Application.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using UniConnect.Domain.Entities;
 using UniConnect.Infrastructure;
 using UniConnect.Infrastructure.Identity;
@@ -17,6 +19,7 @@ using UniConnect.Infrastructure.Identity;
 DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.Configure<BrevoSettings>(
     builder.Configuration.GetSection(BrevoSettings.SectionName));
 // Register Redis Distributed Cache
@@ -69,14 +72,36 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 });
 
 // 4. Real-time & Authentication Setup
+// 4. Real-time & Authentication Setup
 builder.Services.AddSignalR();
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
 
-// Post-configure existing Identity.Bearer scheme to handle SignalR WebSocket query tokens
-builder.Services.PostConfigure<BearerTokenOptions>(IdentityConstants.BearerScheme, options =>
+// Register JWT Bearer alongside Identity
+builder.Services.AddAuthentication(options =>
 {
-    options.Events = new BearerTokenEvents
+    // Default scheme for [Authorize] controllers
+    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "UniConnectApi",
+
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "UniConnectApp",
+
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? builder.Configuration["JwtSettings:Secret"]!)),
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromMinutes(2)
+    };
+
+    // SignalR WebSocket token extractor
+    options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
@@ -87,12 +112,12 @@ builder.Services.PostConfigure<BearerTokenOptions>(IdentityConstants.BearerSchem
             {
                 context.Token = accessToken;
             }
-
             return Task.CompletedTask;
         }
     };
 });
 
+builder.Services.AddAuthorization();
 // 5. MCP Tool Registrations
 builder.Services.AddScoped<UserProfileMcpTool>();
 
@@ -156,7 +181,7 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 });
-
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 var app = builder.Build();
 
 // 8. Middleware Pipeline Setup

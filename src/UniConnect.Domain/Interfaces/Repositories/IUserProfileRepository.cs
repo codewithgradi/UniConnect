@@ -4,10 +4,11 @@ namespace UniConnect.Domain.Interfaces.Repositories;
 
 public interface IUserProfileRepository
 {
+    
     Task<UserProfile?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<UserProfile?> GetProfileWithDetailsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<UserProfile?> GetProfileWithDetailsAsync(Guid profileId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, CancellationToken cancellationToken = default);
+    Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task AddAsync(UserProfile profile, CancellationToken cancellationToken = default);
     void Update(UserProfile profile);
     void AddExperience(Experience experience);

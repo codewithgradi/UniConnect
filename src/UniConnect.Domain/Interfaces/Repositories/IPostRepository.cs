@@ -4,6 +4,8 @@ namespace UniConnect.Domain.Interfaces.Repositories;
 
 public interface IPostRepository
 {
+    Task<int> GetPostCount(Guid userId, CancellationToken cancellationToken);
+
     Task<Post?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Post>> GetFeedPostsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<IEnumerable<Post>> GetPostsByAuthorIdAsync(Guid authorId, CancellationToken cancellationToken = default);

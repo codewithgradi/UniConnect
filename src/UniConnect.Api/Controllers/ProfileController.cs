@@ -17,6 +17,16 @@ public class ProfilesController : ApiControllerBase
     {
         _profileService = profileService;
     }
+    [HttpGet]
+    public async Task<IActionResult> SearchProfiles(
+    [FromQuery] string? searchItem,
+    [FromQuery] string? targetProgramme,
+    [FromQuery] int pageNumber = 1,
+    CancellationToken cancellationToken = default)
+    {
+        var results = await _profileService.SearchProfiles(searchItem, targetProgramme, pageNumber, 10, cancellationToken);
+        return Ok(results);
+    }
 
     [HttpPost]
     public async Task<IActionResult> CreateProfile([FromBody] CreateProfileDto dto, CancellationToken cancellationToken)

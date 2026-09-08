@@ -19,7 +19,15 @@ public class MessagesController : ControllerBase
     public MessagesController(IMessagingService messagingService, IHubContext<ChatHub> hubContext)
     {
         _messagingService = messagingService;
-        _hubContext=hubContext;
+        _hubContext = hubContext;
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        var currentUserId = GetCurrentUserId();
+        var res = await _messagingService.GetAllMessages(currentUserId, cancellationToken);
+        if (res != null) return Ok(res);
+        else return BadRequest("Could not get messages");
     }
 
     [HttpPost]

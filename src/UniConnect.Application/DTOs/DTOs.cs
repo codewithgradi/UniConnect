@@ -2,6 +2,17 @@ using System.Text.Json.Serialization;
 using UniConnect.Domain.Enums;
 namespace UniConnect.Application.DTOs;
 
+public record LoginRequestDto(
+    string Email,
+    string Password
+);
+public record AuthResponse(
+    string AccessToken,
+    string RefreshToken,
+    int ExpiresIn,
+    string UserType,
+    string VerificationStatus
+);
 
 public record CreateProfileDto(
     string FirstName,
@@ -68,6 +79,7 @@ IEnumerable<ExperienceDto> Experiences,
     IEnumerable<CertificationDto> Certifications,
     IEnumerable<SkillDto> Skills
 );
+public record SearchQuery(string searchItem, string targetProgramme);
 public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
 
 public record BusinessProfileDto(Guid Id, string CompanyName, string Industry, string WebsiteUrl);
@@ -88,7 +100,7 @@ public record EmailRequest
     public required string Subject { get; init; }
     public required string HtmlBody { get; init; }
     public string? TextBody { get; init; }
-    public string? From { get; init; } 
+    public string? From { get; init; }
 }
 public record CreateSkillDto(string Name);
 

@@ -45,4 +45,13 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     {
         _dbContext.Connections.Remove(connection);
     }
+
+    public async Task<int> GetConnectionCount(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Connections
+            .Where(p => p.RequesterId == userId)
+            .CountAsync(cancellationToken);
+    }
+
+
 }

@@ -10,4 +10,5 @@ public interface IConnectionRepository
     Task AddAsync(Connection connection, CancellationToken cancellationToken = default);
     void Update(Connection connection);
     void Remove(Connection connection);
+    Task<int> GetConnectionCount(Guid userId, CancellationToken cancellationToken);
 }

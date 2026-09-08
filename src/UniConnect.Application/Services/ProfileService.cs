@@ -224,4 +224,28 @@ public class ProfileService : IProfileService
 
         return oldUrl;
     }
+
+    public async Task<IEnumerable<UserProfileDto>> 
+    SearchProfiles(
+        string? searchItem, 
+        string targetProgram, 
+        int pageNumber, 
+        int pageSize, 
+        CancellationToken cancellationToken
+        )
+    {
+        var profiles = await _unitOfWork.UserProfiles.SearchProfilesAsync(searchItem, targetProgram,pageNumber,pageSize, cancellationToken);
+        if (profiles == null) throw new KeyNotFoundException("Could not load profiles matching criteria");
+
+        return profiles.Select(x => new UserProfileDto(
+            x.Id,
+            x.UserId.ToString(),
+            x.FirstName,
+            x.LastName,
+            x.SystemHeadline,
+            x.AboutBio,
+            x.Programme,
+            x.StudentNumber
+        ));
+    }
 }
