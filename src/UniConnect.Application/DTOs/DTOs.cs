@@ -118,9 +118,9 @@ public record RegisterRequestDto(
     string Email,
     string Password,
     [property: JsonConverter(typeof(JsonStringEnumConverter))] UserType UserType,
-    string? FirstName,
-    string? LastName,
-    string? Programme,
-    string? CompanyName,
-    string? studentNumber
+    string? FirstName=null,
+    string? LastName=null,
+    string? Programme=null,
+    string? CompanyName = null,
+    string? studentNumber = null
 );

@@ -23,6 +23,7 @@ public class BusinessService : IBusinessService
 
     public async Task CreateBusinessProfileAsync(Guid userId, CreateBusinessDto dto)
     {
+        
         var business = new BusinessProfile
         {
             Id = Guid.NewGuid(),

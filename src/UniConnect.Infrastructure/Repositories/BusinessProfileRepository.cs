@@ -31,6 +31,7 @@ public class BusinessProfileRepository : RepositoryBase<BusinessProfile>, IBusin
 
     public async Task AddAsync(BusinessProfile businessProfile, CancellationToken cancellationToken = default)
     {
+        
         await _dbContext.BusinessProfiles.AddAsync(businessProfile, cancellationToken);
     }
 
