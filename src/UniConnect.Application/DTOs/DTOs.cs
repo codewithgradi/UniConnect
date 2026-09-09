@@ -81,6 +81,7 @@ IEnumerable<ExperienceDto> Experiences,
 );
 public record SearchQuery(string searchItem, string targetProgramme);
 public record UserProfileDto(Guid Id, string UserId, string FirstName, string LastName, string Headline, string Bio, string Programme, string StudentNumber);
+public record BusinessProfileUpdateDto(string RegistrationNumber, string CompanyName, string Industry, string WebsiteUrl);
 
 public record BusinessProfileDto(Guid Id, string CompanyName, string Industry, string WebsiteUrl);
 public record CreateBusinessDto(string CompanyName, string RegistrationNumber, string Industry, string WebsiteUrl);

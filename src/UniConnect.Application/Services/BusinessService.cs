@@ -23,7 +23,8 @@ public class BusinessService : IBusinessService
 
     public async Task CreateBusinessProfileAsync(Guid userId, CreateBusinessDto dto)
     {
-        
+        var existingProfile = await _unitOfWork.BusinessProfiles.GetByUserIdAsync(userId);
+        if (existingProfile != null) throw new InvalidOperationException("Business profile exists already");
         var business = new BusinessProfile
         {
             Id = Guid.NewGuid(),
@@ -35,6 +36,20 @@ public class BusinessService : IBusinessService
         };
 
         await _unitOfWork.BusinessProfiles.AddAsync(business);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task UpdateBusinessProfile(Guid userId, BusinessProfileUpdateDto updateDto)
+    {
+        var business = await _unitOfWork.BusinessProfiles.GetByUserIdAsync(userId);
+        if (business == null) throw new KeyNotFoundException("Profile not found");
+
+        business.CompanyName = updateDto.CompanyName;
+        business.CompanyRegistrationNumber = updateDto.RegistrationNumber;
+        business.WebsiteUrl = updateDto.WebsiteUrl;
+        business.Industry = updateDto.Industry;
+
+        _unitOfWork.BusinessProfiles.Update(business);
         await _unitOfWork.SaveChangesAsync();
     }
 }

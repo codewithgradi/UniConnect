@@ -27,7 +27,30 @@ public class BusinessController : ApiControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBusinessProfile([FromBody] CreateBusinessDto dto)
     {
-        await _businessService.CreateBusinessProfileAsync(CurrentUserId, dto);
-        return CreatedAtAction(nameof(GetMyBusinessProfile), null, new { Message = "Business profile created." });
+        try
+        {
+            await _businessService.CreateBusinessProfileAsync(CurrentUserId, dto);
+            return CreatedAtAction(nameof(GetMyBusinessProfile), null, new { Message = "Business profile created." });
+
+        }
+        catch
+        {
+            return BadRequest("Profile exists");
+        }
+    }
+    [HttpPut]
+    public async Task<IActionResult> UpdateProfile( [FromBody] BusinessProfileUpdateDto updateDto)
+
+    {
+        
+        try
+        {
+            await _businessService.UpdateBusinessProfile(CurrentUserId, updateDto);
+            return Ok("Profile has been updated");
+        }
+        catch
+        {
+            return BadRequest("Could not update profile");
+        }
     }
 }

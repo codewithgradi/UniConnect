@@ -212,4 +212,5 @@ app.MapMcp("/mcp");
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapControllers();
 
+app.Urls.Add("http://0.0.0.0:5116");
 app.Run();
