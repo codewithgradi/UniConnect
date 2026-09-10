@@ -53,7 +53,7 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
             .FirstOrDefaultAsync(p => p.Id == profileId, cancellationToken);
     }
 
-    public async Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserProfile>> SearchProfilesAsync(string? searchTerm, string? programme, int pageNumber, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.UserProfiles.AsQueryable();
 

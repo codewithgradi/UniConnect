@@ -21,9 +21,14 @@ public class ProfilesController : ApiControllerBase
     public async Task<IActionResult> SearchProfiles(
     [FromQuery] string? searchItem,
     [FromQuery] string? targetProgramme,
-    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageNumber ,
     CancellationToken cancellationToken = default)
     {
+        if (pageNumber < 1)
+        {
+            pageNumber = 1;
+        }
+
         var results = await _profileService.SearchProfiles(searchItem, targetProgramme, pageNumber, 10, cancellationToken);
         return Ok(results);
     }

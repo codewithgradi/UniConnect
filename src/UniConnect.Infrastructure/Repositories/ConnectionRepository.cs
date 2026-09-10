@@ -20,6 +20,7 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     public async Task<IEnumerable<Connection>> GetUserConnectionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Connections
+            .Include(c=>c.Requester)
             .Where(c => (c.RequesterId == userId || c.ReceiverId == userId) && c.Status == ConnectionStatus.Accepted) // 1 = Accepted
             .ToListAsync(cancellationToken);
     }
@@ -27,6 +28,7 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     public async Task<IEnumerable<Connection>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Connections
+            .Include(c=>c.Requester)
             .Where(c => c.ReceiverId == userId && c.Status == ConnectionStatus.Pending) 
             .ToListAsync(cancellationToken);
     }
@@ -49,6 +51,8 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     public async Task<int> GetConnectionCount(Guid userId, CancellationToken cancellationToken)
     {
         return await _dbContext.Connections
+            .Include(c=>c.Requester)
+            .ThenInclude(c=>c.Profile)
             .Where(p => p.RequesterId == userId)
             .CountAsync(cancellationToken);
     }

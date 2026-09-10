@@ -20,12 +20,16 @@ public class PostRepository : RepositoryBase<Post>, IPostRepository
     public async Task<IEnumerable<Post>> GetFeedPostsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Posts
-            .OrderByDescending(p => p.CreatedAtUtc)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .Include(p => p.Comments)
-            .Include(p => p.Reactions)
-            .ToListAsync(cancellationToken);
+        .Include(p => p.Author)
+        .ThenInclude(a => a.Profile)
+        .Include(p => p.Comments)
+        .Include(p => p.Reactions)
+        .OrderByDescending(p => p.CreatedAtUtc)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+        
     }
 
     public async Task<IEnumerable<Post>> GetPostsByAuthorIdAsync(Guid authorId, CancellationToken cancellationToken = default)

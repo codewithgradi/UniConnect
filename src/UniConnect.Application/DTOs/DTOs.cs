@@ -1,7 +1,10 @@
 using System.Text.Json.Serialization;
 using UniConnect.Domain.Enums;
 namespace UniConnect.Application.DTOs;
-
+public record PostOpportunitydto
+(
+    string Title,string Description, string TargetProgramme
+);
 public record LoginRequestDto(
     string Email,
     string Password
@@ -86,8 +89,22 @@ public record BusinessProfileUpdateDto(string RegistrationNumber, string Company
 public record BusinessProfileDto(Guid Id, string CompanyName, string Industry, string WebsiteUrl);
 public record CreateBusinessDto(string CompanyName, string RegistrationNumber, string Industry, string WebsiteUrl);
 
-public record PostDto(Guid Id, Guid AuthorId, string Content, DateTime CreatedAt, int CommentCount, int LikeCount);
+public record PostDto(
+    Guid Id, 
+    Guid AuthorId, 
+    string Content, 
+    DateTime CreatedAt,
+    int CommentCount,
+    int LikeCount,
+    string FirstName,
+    string LastName,
+    string userEmail,
+    bool isLiked
+    );
+public record ConnectionDto(Guid Id, Guid RequesterId, string FirtName, string LastName, ConnectionStatus Status);
 
+public record ApplicationUserDto( UserProfileDto Profile);
+public record UserProfiledto(string FirstName, string LastName);
 public record DirectMessageDto(Guid Id, Guid SenderId, Guid ReceiverId, string Content, DateTime SentAt, bool IsRead);
 
 public record CreateOpportunityDto(string Title, string Description, string TargetProgramme);

@@ -170,6 +170,7 @@ public static class DependencyInjection
         services.AddScoped<IOpportunityService, OpportunityService>();
         services.AddScoped<IInstitutionalService, InstitutionalService>();
         services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         return services;
     }

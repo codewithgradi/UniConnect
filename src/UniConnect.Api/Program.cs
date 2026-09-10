@@ -19,7 +19,11 @@ using UniConnect.Infrastructure.Identity;
 DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.Configure<BrevoSettings>(
     builder.Configuration.GetSection(BrevoSettings.SectionName));
 // Register Redis Distributed Cache

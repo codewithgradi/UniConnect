@@ -1,3 +1,4 @@
+using UniConnect.Application.DTOs;
 using UniConnect.Domain.Entities;
 using UniConnect.Domain.Enums;
 using UniConnect.Domain.Interfaces.Repositories;
@@ -86,13 +87,37 @@ public class ConnectionService : IConnectionService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Connection>> GetUserConnectionsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ConnectionDto>> GetUserConnectionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _unitOfWork.Connections.GetUserConnectionsAsync(userId, cancellationToken);
+        var connections = await _unitOfWork.Connections.GetUserConnectionsAsync(userId, cancellationToken);
+        return connections
+            .Where(c => (c.RequesterId == userId || c.ReceiverId == userId) && c.Status == ConnectionStatus.Accepted)
+            .Select(c =>
+            {
+                // Determine which user is the "other" person in the connection view
+                var otherUser = c.RequesterId == userId ? c.Receiver : c.Requester;
+
+                return new ConnectionDto(
+                    c.Id,
+                    otherUser?.Id ?? c.RequesterId,
+                    otherUser?.Profile?.FirstName ?? "Unknown",
+                    otherUser?.Profile?.LastName ?? "Unknown",
+                    c.Status
+                );
+            });
     }
 
-    public async Task<IEnumerable<Connection>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ConnectionDto>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _unitOfWork.Connections.GetPendingRequestsAsync(userId, cancellationToken);
+        var connections = await _unitOfWork.Connections.GetPendingRequestsAsync(userId, cancellationToken);
+        return connections
+            .Where(c => c.ReceiverId == userId && c.Status == ConnectionStatus.Pending)
+            .Select(c => new ConnectionDto(
+                 c.Id,
+                 c.RequesterId,
+                 c.Requester?.Profile?.FirstName ?? "Unknown",
+                 c.Requester?.Profile?.LastName ?? "Unknown",
+                 c.Status
+            ));
     }
 }

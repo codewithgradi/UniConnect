@@ -7,5 +7,5 @@ public interface IPostService
     Task CreatePostAsync(Guid authorId, string content);
     Task AddCommentAsync(Guid postId, Guid authorId, string content);
     Task ToggleReactionAsync(Guid postId, Guid userId, string reactionType);
-    Task<IEnumerable<PostDto>> GetFeedAsync(int pageNumber, int pageSize);
+    Task<IEnumerable<PostDto>> GetFeedAsync(Guid userId,int pageNumber, int pageSize);
 }

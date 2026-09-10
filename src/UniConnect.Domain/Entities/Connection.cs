@@ -1,6 +1,5 @@
 using UniConnect.Domain.Entities;
 using UniConnect.Domain.Enums;
-
 public class Connection
 {
     public Guid Id { get; set; } = Guid.NewGuid();

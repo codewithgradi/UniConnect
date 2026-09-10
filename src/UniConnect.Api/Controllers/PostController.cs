@@ -19,7 +19,8 @@ public class PostsController : ApiControllerBase
     [HttpGet("feed")]
     public async Task<IActionResult> GetFeed([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var feed = await _postService.GetFeedAsync(pageNumber, pageSize);
+
+        var feed = await _postService.GetFeedAsync(CurrentUserId,pageNumber, pageSize);
         return Ok(feed);
     }
 

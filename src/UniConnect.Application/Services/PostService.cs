@@ -1,5 +1,4 @@
 using UniConnect.Application.DTOs;
-using UniConnect.Domain.Entities;
 using UniConnect.Domain.Interfaces.Repositories;
 
 namespace UniConnect.Application.Services;
@@ -48,9 +47,20 @@ public class PostService : IPostService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<PostDto>> GetFeedAsync(int pageNumber, int pageSize)
+    public async Task<IEnumerable<PostDto>> GetFeedAsync(Guid userId,int pageNumber, int pageSize)
     {
         var posts = await _unitOfWork.Posts.GetFeedPostsAsync(pageNumber, pageSize);
-        return posts.Select(p => new PostDto(p.Id, p.AuthorId, p.Content, p.CreatedAtUtc, p.Comments.Count, p.Reactions.Count));
+        return posts.Select(p => new PostDto(
+            p.Id,
+            p.AuthorId,
+            p.Content,
+            p.CreatedAtUtc,
+            p.Comments?.Count ?? 0,
+            p.Reactions?.Count ?? 0,
+            p.Author?.Profile?.FirstName ?? string.Empty,
+            p.Author?.Profile?.LastName ?? string.Empty,
+            p.Author?.Email ?? string.Empty,
+            p.Reactions.Any(r => r.UserId == userId)
+            ));
     }
 }
