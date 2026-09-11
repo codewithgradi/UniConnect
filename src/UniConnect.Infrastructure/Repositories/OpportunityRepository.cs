@@ -33,7 +33,10 @@ public class OpportunityRepository : RepositoryBase<Opportunity>, IOpportunityRe
     public async Task<Opportunity?> GetWithApplicationsAsync(Guid opportunityId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Opportunities
+        .Include(o => o.BusinessProfile)
             .Include(o => o.Applications)
+            .ThenInclude(x => x.Applicant)
+            .ThenInclude(y => y.Profile)
             .FirstOrDefaultAsync(o => o.Id == opportunityId, cancellationToken);
     }
 

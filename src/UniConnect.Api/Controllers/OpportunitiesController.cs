@@ -57,12 +57,16 @@ public class OpportunitiesController : ControllerBase
 
     [HttpPost("{id:guid}/apply")]
     [Authorize(Roles = "Student")]
-    public async Task<IActionResult> Apply(Guid id, [FromBody] ApplyJobDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Apply(Guid id, CancellationToken cancellationToken)
     {
         var applicantId = GetCurrentUserId();
+        var user = await _iUnitOfWork.UserProfiles.GetByUserIdAsync(applicantId, cancellationToken);
+        var cvFileUrl = user?.CvFileUrl;
+
+
         try
         {
-            await _opportunityService.ApplyForJobAsync(id, applicantId, dto.CvFileUrl, cancellationToken);
+            await _opportunityService.ApplyForJobAsync(id, applicantId, cvFileUrl, cancellationToken);
             return Ok(new { message = "Application submitted successfully." });
         }
         catch (InvalidOperationException ex)
@@ -80,6 +84,13 @@ public class OpportunitiesController : ControllerBase
     {
         var pending = await _opportunityService.GetPendingOpportunitiesAsync(cancellationToken);
         return Ok(pending);
+    }
+    [HttpGet("{opoId:guid}/applications")]
+    public async Task<IActionResult> GetWithApplications( [FromRoute] Guid opoId, CancellationToken cancellationToken)
+    {
+      var res = await _opportunityService.GetOppporttunityWithApplication(opoId,cancellationToken);
+      if(res == null) return NotFound("oportunity was not found");
+      return Ok(res);
     }
 
     [HttpGet("my-postings")]

@@ -47,6 +47,8 @@ public class OpportunityService : IOpportunityService
         {
             throw new KeyNotFoundException("Opportunity is not active or does not exist.");
         }
+        if (!StorageValidationUtility.IsValidCvFileKey(cvFileUrl))
+            throw new InvalidOperationException("Invalid cv format, save a cv to profile before you apply");
 
         var hasApplied = await _unitOfWork.Opportunities.HasUserAppliedAsync(opportunityId, applicantId, cancellationToken);
         if (hasApplied)
@@ -102,5 +104,29 @@ public class OpportunityService : IOpportunityService
     {
         var opportunity = await _unitOfWork.Opportunities.GetByIdAsync(opportunityId, cancellationToken);
         return opportunity ?? throw new KeyNotFoundException($"Opportunity with ID {opportunityId} was not found.");
+    }
+
+    public async Task<GetOpportunityWithApplications> GetOppporttunityWithApplication(Guid opportunityId, CancellationToken token)
+    {
+        var opportunityWithApps = await _unitOfWork.Opportunities.GetWithApplicationsAsync(opportunityId, token);
+
+        if (opportunityWithApps == null)
+            throw new InvalidOperationException("Opportunity was not found");
+
+        return new GetOpportunityWithApplications(
+            opportunityWithApps.Id,
+            opportunityWithApps.BusinessProfile.UserId,
+            opportunityWithApps.BusinessProfileId,
+            opportunityWithApps.Title,
+            opportunityWithApps.Description,
+            opportunityWithApps.Applications?.Select(app => new ApplicantDto(
+                app.Applicant?.Profile?.Id ?? Guid.Empty,
+                app.Applicant?.Profile?.FirstName ?? string.Empty,
+                app.Applicant?.Profile?.LastName ?? string.Empty,
+                app.Applicant?.Profile?.SystemHeadline ?? string.Empty,
+                app.Applicant?.Profile?.AboutBio ?? string.Empty,
+                app.Applicant?.Profile?.CvFileUrl ?? string.Empty
+            )) ?? Enumerable.Empty<ApplicantDto>()
+        );
     }
 }

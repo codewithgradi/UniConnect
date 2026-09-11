@@ -40,6 +40,7 @@ public class R2StorageService : IR2StorageService
             ContentType = file.ContentType,
             DisablePayloadSigning = true
         };
+        
 
         await _s3Client.PutObjectAsync(request, token);
 

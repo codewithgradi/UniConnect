@@ -1,5 +1,6 @@
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using UniConnect.Application.Services;
 using UniConnect.Domain.Entities;
 using UniConnect.Domain.Interfaces.Repositories;
 
@@ -45,6 +46,10 @@ public class DirectMessageRepository : RepositoryBase<DirectMessage>, IDirectMes
 
     public async Task<ICollection<DirectMessage>> GetAllMessages(Guid userId, CancellationToken cancellationToken)
     {
-        return await _dbContext.DirectMessages.Where(x=>x.Receiver.Id == userId ).ToListAsync();
+        return await _dbContext.DirectMessages
+            .Include(x => x.Sender)
+                .ThenInclude(u => u.Profile)
+            .Where(x => x.ReceiverId == userId)
+            .ToListAsync(cancellationToken);
     }
 }

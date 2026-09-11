@@ -142,3 +142,18 @@ public record RegisterRequestDto(
     string? CompanyName = null,
     string? studentNumber = null
 );
+public record GetOpportunityWithApplications(
+    Guid Id,
+    Guid UserId,
+    Guid BusinessProfileId,
+    string Title,
+    string Descriptiom,
+    IEnumerable<ApplicantDto> Applicants
+);
+public record ApplicantDto(
+    Guid UserProfileId,
+    string FirstName, 
+    string LastName, 
+    string SystemHeadline, 
+    string AboutBio, 
+    string CvFileUrl);

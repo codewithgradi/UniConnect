@@ -19,10 +19,8 @@ public class MediaController : ApiControllerBase
     }
     [HttpPost("upload-cv")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadCv([FromForm] CvUploadDto dto, CancellationToken token)
+    public async Task<IActionResult> UploadCv(IFormFile file, CancellationToken token)
     {
-        var file = dto.File;
-
         if (file == null || file.Length == 0)
             return BadRequest("No file provided.");
 
@@ -34,7 +32,6 @@ public class MediaController : ApiControllerBase
 
         return Ok(new { Message = "CV uploaded successfully.", Url = newCvUrl });
     }
-
     [HttpPut("update-cv")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UpdateCv([FromForm] CvUploadDto dto, CancellationToken token)

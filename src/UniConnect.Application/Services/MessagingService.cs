@@ -1,5 +1,4 @@
 using UniConnect.Application.DTOs;
-using UniConnect.Domain.Entities;
 using UniConnect.Domain.Interfaces.Repositories;
 
 namespace UniConnect.Application.Services;
@@ -25,11 +24,23 @@ public class MessagingService : IMessagingService
             throw new ArgumentException("Message content cannot be empty.", nameof(content));
         }
 
+        // Resolve sender: check if the incoming senderId is a UserProfile ID and map to the underlying User/Account ID
+        var senderProfile = await _unitOfWork.UserProfiles
+            .GetByUserProfileIdAsync(senderId , cancellationToken);
+
+        var resolvedSenderId = senderProfile?.UserId ?? senderId;
+
+        // Resolve receiver: check if the incoming receiverId (from the profile route) is a UserProfile ID and map to the underlying User/Account ID
+        var receiverProfile = await _unitOfWork.UserProfiles
+            .GetByUserProfileIdAsync( receiverId , cancellationToken);
+
+        var resolvedReceiverId = receiverProfile?.UserId ?? receiverId;
+
         var message = new DirectMessage
         {
             Id = Guid.NewGuid(),
-            SenderId = senderId,
-            ReceiverId = receiverId,
+            SenderId = resolvedSenderId,
+            ReceiverId = resolvedReceiverId,
             Content = content.Trim(),
             SentAtUtc = DateTime.UtcNow,
             IsRead = false
@@ -47,7 +58,6 @@ public class MessagingService : IMessagingService
             message.IsRead
         );
     }
-
     public async Task<IEnumerable<DirectMessageDto>> GetConversationAsync(Guid userOneId, Guid userTwoId, int skip = 0, int take = 50, CancellationToken cancellationToken = default)
     {
         var messages = await _unitOfWork.DirectMessages.GetConversationAsync(userOneId, userTwoId, skip, take, cancellationToken);
@@ -80,7 +90,19 @@ public class MessagingService : IMessagingService
 
     public async Task<IEnumerable<DirectMessageDtoForAll>> GetAllMessages(Guid userId, CancellationToken ct)
     {
-        var mesages = await _unitOfWork.DirectMessages.GetAllMessages(userId, ct);
-        return mesages.Select(m=> new DirectMessageDtoForAll(m.Receiver, m.Content));
+        var messages = await _unitOfWork.DirectMessages.GetAllMessages(userId, ct);
+
+        return messages
+        .GroupBy(m => m.SenderId)
+        .Select(g => g.OrderByDescending(m => m.SentAtUtc).FirstOrDefault())
+        .Where(m => m != null)
+        .Select(m => new DirectMessageDtoForAll(
+            m.Id,
+            m.SenderId,
+            m.Sender?.Profile?.Id ?? Guid.Empty,
+            m.Sender?.Profile?.FirstName ?? string.Empty,
+            m.Sender?.Profile?.LastName ?? string.Empty,
+            m.Content
+        ));
     }
 }

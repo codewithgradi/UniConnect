@@ -11,4 +11,10 @@ public interface IMessagingService
     Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default);
     Task MarkMessagesAsReadAsync(Guid userId, IEnumerable<Guid> messageIds, CancellationToken cancellationToken = default);
 }
-public record DirectMessageDtoForAll(ApplicationUser ApplicationUser, string message);
+public record DirectMessageDtoForAll(
+    Guid Id,
+    Guid SenderUserId,
+    Guid SenderProfileId,
+    string SenderFirstName,
+    string SenderLastName,
+    string message);
