@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UniConnect.Api/UniConnect.Api.csproj" />
+    <Project Path="src/UniConnect.Application/UniConnect.Application.csproj" />
+    <Project Path="src/UniConnect.Domain/UniConnect.Domain.csproj" />
+    <Project Path="src/UniConnect.Infrastructure/UniConnect.Infrastructure.csproj" />
+  </Folder>
+</Solution>
