@@ -171,6 +171,7 @@ public static class DependencyInjection
         services.AddScoped<IInstitutionalService, InstitutionalService>();
         services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddScoped<ICertificateVerificationService, CertificateVerificationService>();
 
         return services;
     }

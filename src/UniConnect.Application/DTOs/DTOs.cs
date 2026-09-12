@@ -157,3 +157,11 @@ public record ApplicantDto(
     string SystemHeadline, 
     string AboutBio, 
     string CvFileUrl);
+
+// DTOs/CertificateVerificationResponse.cs
+public record CertificateVerificationResponse(
+    int CredibilityScore,
+    string DocumentStatus,
+    DateTime Time
+);
+

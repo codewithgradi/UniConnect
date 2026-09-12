@@ -56,7 +56,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpPost("{id:guid}/apply")]
-    [Authorize(Roles = "Student")]
+    [Authorize(Roles = "Student,Alumni")]
     public async Task<IActionResult> Apply(Guid id, CancellationToken cancellationToken)
     {
         var applicantId = GetCurrentUserId();

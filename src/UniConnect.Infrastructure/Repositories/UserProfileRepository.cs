@@ -24,9 +24,9 @@ public class UserProfileRepository : RepositoryBase<UserProfile>, IUserProfileRe
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
     }
     public async Task<UserProfile?> GetByUserProfileIdAsync(Guid profileId, CancellationToken cancellationToken = default)
-    {
+    { 
         return await _dbContext.UserProfiles
-            .FirstOrDefaultAsync(p => p.Id == profileId, cancellationToken); 
+            .FirstOrDefaultAsync( p=>p.Id == profileId, cancellationToken); 
     }
 
     public async Task<UserProfile?> GetProfileWithDetailsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)

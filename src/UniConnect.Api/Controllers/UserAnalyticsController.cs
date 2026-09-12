@@ -18,7 +18,7 @@ public class UserAnalyticsController : ControllerBase
     }
 
     [HttpGet("student")]
-    [Authorize(Roles = "Student")]
+    [Authorize(Roles = "Student,Alumni")]
     public async Task<IActionResult> GetStudentAnalytics(CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
