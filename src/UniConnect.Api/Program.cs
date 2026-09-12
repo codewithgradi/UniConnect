@@ -35,7 +35,7 @@ builder.Services.AddDistributedMemoryCache(options =>
 builder.Services.AddHttpClient();
 
 // Register your EmailService implementation
-builder.Services.AddHttpClient<IEmailService,EmailService>();
+builder.Services.AddHttpClient<IEmailService, EmailService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 
 builder.Configuration.AddEnvironmentVariables();
@@ -192,14 +192,13 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseCors("AllowNextJs");
 
-if (app.Environment.IsDevelopment())
+
+app.MapOpenApi();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "UniConnect.Api v1");
-    });
-}
+    options.SwaggerEndpoint("/openapi/v1.json", "UniConnect.Api v1");
+});
+
 
 // app.UseHttpsRedirection();
 
