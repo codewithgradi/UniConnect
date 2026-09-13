@@ -101,7 +101,7 @@ public record PostDto(
     string userEmail,
     bool isLiked
     );
-public record ConnectionDto(Guid Id, Guid RequesterId, string FirtName, string LastName, ConnectionStatus Status);
+public record ConnectionDto(Guid Id, Guid RequesterId, Guid RequesterProfileId, string FirtName, string LastName, ConnectionStatus Status);
 
 public record ApplicationUserDto( UserProfileDto Profile);
 public record UserProfiledto(string FirstName, string LastName);

@@ -114,6 +114,7 @@ public class ConnectionService : IConnectionService
             .Where(c => c.ReceiverId == userId && c.Status == ConnectionStatus.Pending)
             .Select(c => new ConnectionDto(
                  c.Id,
+                 c.RequesterId,
                  c.Requester.Profile.Id,
                  c.Requester?.Profile?.FirstName ?? "Unknown",
                  c.Requester?.Profile?.LastName ?? "Unknown",
