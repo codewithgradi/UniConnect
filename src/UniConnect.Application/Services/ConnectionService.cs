@@ -99,6 +99,7 @@ public class ConnectionService : IConnectionService
 
                 return new ConnectionDto(
                     c.Id,
+                    c.RequesterId,
                     otherUser?.Id ?? c.RequesterId,
                     otherUser?.Profile?.FirstName ?? "Unknown",
                     otherUser?.Profile?.LastName ?? "Unknown",
