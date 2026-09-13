@@ -77,8 +77,11 @@ public static class DependencyInjection
     {
         var frontendDevUrl = configuration["OtherSettings:FrontEndDevUrl"];
         var frontendProdUrl = configuration["OtherSettings:FrontEndProdUrl"];
+        var frontendProdUrlSwagger = configuration["OtherSettings:FrontEndDevUrlWeb"];
 
-        if (string.IsNullOrEmpty(frontendDevUrl) || string.IsNullOrEmpty(frontendProdUrl))
+        if (string.IsNullOrEmpty(frontendDevUrl) || string.IsNullOrEmpty(frontendProdUrl)||
+        string.IsNullOrEmpty(frontendProdUrlSwagger)
+        )
         {
             throw new InvalidOperationException("Missing front-end URLs in configuration.");
         }
@@ -87,7 +90,7 @@ public static class DependencyInjection
         {
             opt.AddPolicy("AllowNextJs", builder =>
             {
-                builder.WithOrigins(frontendDevUrl, frontendProdUrl)
+                builder.WithOrigins(frontendDevUrl, frontendProdUrl, frontendProdUrlSwagger)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();
