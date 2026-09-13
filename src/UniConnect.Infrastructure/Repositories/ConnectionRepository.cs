@@ -30,6 +30,7 @@ public class ConnectionRepository : RepositoryBase<Connection>, IConnectionRepos
     {
         return await _dbContext.Connections
             .Include(c=>c.Requester)
+            .ThenInclude(x=>x.Profile)
             .Where(c => c.ReceiverId == userId && c.Status == ConnectionStatus.Pending) 
             .ToListAsync(cancellationToken);
     }
