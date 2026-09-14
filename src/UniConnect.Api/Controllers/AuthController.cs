@@ -41,8 +41,13 @@ public class AuthController : ControllerBase
     {
         var email = dto.Email?.Trim();
 
-        if (string.IsNullOrWhiteSpace(email) ||
-            !Regex.IsMatch(email, @"^\d{7,10}@my\.richfield\.ac\.za$", RegexOptions.IgnoreCase))
+        if (dto.UserType == UserType.Student && 
+        (
+            string.IsNullOrWhiteSpace(email) ||
+            !Regex.IsMatch
+            (email, @"^\d{7,10}@my\.richfield\.ac\.za$", RegexOptions.IgnoreCase)
+        )
+        )
         {
             return BadRequest("Invalid student email");
         }
