@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -38,7 +39,14 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto, CancellationToken cancellationToken)
     {
-        var user = new ApplicationUser
+        var email = dto.Email?.Trim();
+
+        if (string.IsNullOrWhiteSpace(email) ||
+            !Regex.IsMatch(email, @"^\d{7,10}@my\.richfield\.ac\.za$", RegexOptions.IgnoreCase))
+        {
+            return BadRequest("Invalid student email");
+        }
+            var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = dto.Email,
