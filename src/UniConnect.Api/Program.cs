@@ -124,7 +124,10 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 // 5. MCP Tool Registrations
 builder.Services.AddScoped<UserProfileMcpTool>();
-
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // e.g., 100 MB for short videos
+});
 // 6. Infrastructure & Domain Service Registrations
 builder.Services
     .AllowCors(builder.Configuration)
@@ -187,6 +190,7 @@ builder.Services.AddOpenApi(options =>
 });
 System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 var app = builder.Build();
+
 
 // 8. Middleware Pipeline Setup
 app.UseExceptionHandler();

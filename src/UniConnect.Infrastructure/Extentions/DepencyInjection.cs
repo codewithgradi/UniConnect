@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
+using UniConnect.Application.Interfaces;
 using UniConnect.Application.Services;
 using UniConnect.Domain.Interfaces.Repositories;
 using UniConnect.Infrastructure.AwsS3;

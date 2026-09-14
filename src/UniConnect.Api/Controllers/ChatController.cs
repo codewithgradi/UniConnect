@@ -96,7 +96,17 @@ public class ChatController : ApiControllerBase
                     async () => await _mcpTool.GetFullUserProfile(CurrentUserId),
                     name: "GetBasicInfo",
                     description: "Fetches basic profile information, background, and personal context for the logged-in user."
-                )
+                ),
+                AIFunctionFactory.Create(
+                    async () => await _mcpTool.GetOpportunitiesAsync("",cancellationToken),
+                    name: "get_opportunities",
+                    description: "returns all the jobs and opportunities on the platform"
+                ),
+                AIFunctionFactory.Create(
+                    async () => await _mcpTool.GetUserCvUrl(CurrentUserId,cancellationToken),
+                    name: "get_user_cv_url",
+                    description: "returns the url for the CV of the current user"
+                ),
             }
         };
 

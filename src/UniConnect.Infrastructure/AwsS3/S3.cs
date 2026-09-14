@@ -1,15 +1,11 @@
+// File: UniConnect.Infrastructure/AwsS3/R2StorageService.cs
 using Amazon.S3;
 using Amazon.S3.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using UniConnect.Application.DTOs;
+using UniConnect.Application.Interfaces;
 
 namespace UniConnect.Infrastructure.AwsS3;
-
-public interface IR2StorageService
-{
-    Task<string> UploadCvAsync(IFormFile file, Guid userId, CancellationToken token);
-    Task DeleteFileByKeyAsync(string fileKey, CancellationToken token);
-}
 
 public class R2StorageService : IR2StorageService
 {
@@ -22,25 +18,46 @@ public class R2StorageService : IR2StorageService
         _config = config;
     }
 
-    public async Task<string> UploadCvAsync(IFormFile file, Guid userId, CancellationToken token)
+    public async Task<string> UploadCvAsync(Stream fileStream, string fileName, string contentType, Guid userId, CancellationToken token)
     {
         var bucketName = _config["R2:BucketName"];
         var publicDomain = _config["R2:PublicDomain"];
-        var fileExtension = Path.GetExtension(file.FileName);
+        var fileExtension = Path.GetExtension(fileName);
 
         // Name format: cvs/{userId}_{guid}.pdf
         var fileKey = $"cvs/{userId}_{Guid.NewGuid()}{fileExtension}";
 
-        using var stream = file.OpenReadStream();
         var request = new PutObjectRequest
         {
             BucketName = bucketName,
             Key = fileKey,
-            InputStream = stream,
-            ContentType = file.ContentType,
+            InputStream = fileStream,
+            ContentType = contentType,
             DisablePayloadSigning = true
         };
-        
+
+        await _s3Client.PutObjectAsync(request, token);
+
+        return $"{publicDomain}/{fileKey}";
+    }
+
+    public async Task<string> UploadMediaAsync(FileUploadDto fileDto, CancellationToken token)
+    {
+        var bucketName = _config["R2:BucketName"];
+        var publicDomain = _config["R2:PublicDomain"];
+        var fileExtension = Path.GetExtension(fileDto.FileName);
+
+        // Name format: media/{guid}{extension}
+        var fileKey = $"media/{Guid.NewGuid()}{fileExtension}";
+
+        var request = new PutObjectRequest
+        {
+            BucketName = bucketName,
+            Key = fileKey,
+            InputStream = fileDto.Content,
+            ContentType = fileDto.ContentType,
+            DisablePayloadSigning = true
+        };
 
         await _s3Client.PutObjectAsync(request, token);
 
@@ -54,7 +71,7 @@ public class R2StorageService : IR2StorageService
         var bucketName = _config["R2:BucketName"];
         var publicDomain = _config["R2:PublicDomain"];
 
-        // Extract "cvs/userId_guid.pdf" from "https://pub-xxx.r2.dev/cvs/userId_guid.pdf"
+        // Extract file key from URL
         var fileKey = fileUrl.Replace($"{publicDomain}/", "");
 
         var deleteRequest = new DeleteObjectRequest

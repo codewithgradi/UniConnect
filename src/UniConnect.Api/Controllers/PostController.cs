@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniConnect.Application.DTOs;
+using UniConnect.Application.Interfaces;
 using UniConnect.Application.Services;
 
 namespace UniConnect.Api.Controllers;
@@ -23,14 +25,34 @@ public class PostsController : ApiControllerBase
         var feed = await _postService.GetFeedAsync(CurrentUserId,pageNumber, pageSize);
         return Ok(feed);
     }
-
     [HttpPost]
-    public async Task<IActionResult> CreatePost([FromBody] CreatePostRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> CreatePost(
+        [FromForm] string? content,  // <-- Make this nullable
+        [FromForm] IFormFile? mediaFile,
+        CancellationToken token = default)
     {
-        await _postService.CreatePostAsync(CurrentUserId, request.Content);
+        // Now this code will successfully catch empty/missing content
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return BadRequest(new { Message = "Content parameter is missing or empty." });
+        }
+
+        FileUploadDto? mediaDto = null;
+        if (mediaFile != null && mediaFile.Length > 0)
+        {
+            mediaDto = new FileUploadDto(
+                mediaFile.OpenReadStream(),
+                mediaFile.FileName,
+                mediaFile.ContentType
+            );
+        }
+
+        if (CurrentUserId == null) return Unauthorized();
+
+        await _postService.CreatePostAsync(CurrentUserId, content, mediaDto, token);
         return Ok(new { Message = "Post created successfully." });
     }
-
     [HttpPost("{postId:guid}/comments")]
     public async Task<IActionResult> AddComment(Guid postId, [FromBody] AddCommentRequest request)
     {
@@ -46,6 +68,13 @@ public class PostsController : ApiControllerBase
     }
 }
 
-public record CreatePostRequest(string Content);
+// Change this from a record to a standard class:
+public class CreatePostRequest
+{
+    [Required(AllowEmptyStrings = true)] // Allows empty text when uploading media
+    public string Content { get; set; } = string.Empty;
+
+    public IFormFile? MediaFile { get; set; }
+}
 public record AddCommentRequest(string Content);
 public record ToggleReactionRequest(string ReactionType);

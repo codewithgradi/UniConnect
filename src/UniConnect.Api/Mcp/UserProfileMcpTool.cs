@@ -24,7 +24,7 @@ public class UserProfileMcpTool
     {
         return await GetUserProfileAsyncGeneral(userId, cancellationToken);
     }
-    [McpServerTool(Name ="get_user_cv_url"),
+    [McpServerTool(Name = "get_user_cv_url"),
     Description("This tool returns user cv url saved in userprofile table")
     ]
     public async Task<string> GetUserCvUrl(Guid userId, CancellationToken cancellationToken)
@@ -38,5 +38,23 @@ public class UserProfileMcpTool
         var profileService = scope.ServiceProvider.GetRequiredService<IProfileService>();
 
         return await profileService.GetProfileByUserIdAsync(userId, cancellationToken);
+    }
+    [McpServerTool(Name = "get_opportunities"),
+     Description(
+        """
+        This tool returns all active opportunities or 
+     jobs that are active on platform that users may apply to,
+     use thi tool when a user asks for jobs or opportunities on platform
+     """)
+    ]
+    public async Task<IEnumerable<Opportunity>> GetOpportunitiesAsync(
+        [Description("Use this as a filter to get opportunities if provided a target program")]
+        string? targetProgramme,
+        CancellationToken cancellationToken=default)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        var opportunities = scope.ServiceProvider.GetRequiredService<IOpportunityService>();
+        return await opportunities.GetActiveOpportunitiesAsync(targetProgramme, cancellationToken);
+
     }
 }

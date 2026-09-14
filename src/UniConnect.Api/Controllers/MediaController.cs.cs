@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using UniConnect.Api.Controllers;
+using UniConnect.Application.Interfaces;
 using UniConnect.Application.Services;
 using UniConnect.Infrastructure.AwsS3;
 
@@ -17,6 +18,7 @@ public class MediaController : ApiControllerBase
         _r2Storage = r2Storage;
         _profileService = profileService;
     }
+
     [HttpPost("upload-cv")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadCv(IFormFile file, CancellationToken token)
@@ -27,11 +29,20 @@ public class MediaController : ApiControllerBase
         if (file.ContentType != "application/pdf")
             return BadRequest("Only PDF documents are allowed.");
 
-        var newCvUrl = await _r2Storage.UploadCvAsync(file, CurrentUserId, token);
+        // Extract stream and metadata to match the clean architecture signature
+        var newCvUrl = await _r2Storage.UploadCvAsync(
+            file.OpenReadStream(),
+            file.FileName,
+            file.ContentType,
+            CurrentUserId,
+            token
+        );
+
         await _profileService.SaveCvUrlToDbAsync(CurrentUserId, newCvUrl, token);
 
         return Ok(new { Message = "CV uploaded successfully.", Url = newCvUrl });
     }
+
     [HttpPut("update-cv")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UpdateCv([FromForm] CvUploadDto dto, CancellationToken token)
@@ -44,7 +55,15 @@ public class MediaController : ApiControllerBase
         if (file.ContentType != "application/pdf")
             return BadRequest("Only PDF documents are allowed.");
 
-        var newCvUrl = await _r2Storage.UploadCvAsync(file, CurrentUserId, token);
+        // Extract stream and metadata here as well
+        var newCvUrl = await _r2Storage.UploadCvAsync(
+            file.OpenReadStream(),
+            file.FileName,
+            file.ContentType,
+            CurrentUserId,
+            token
+        );
+
         var oldCvUrl = await _profileService.UpdateCvUrlInDbAsync(CurrentUserId, newCvUrl, token);
 
         if (!string.IsNullOrEmpty(oldCvUrl))
@@ -55,6 +74,7 @@ public class MediaController : ApiControllerBase
         return Ok(new { Message = "CV updated successfully.", Url = newCvUrl });
     }
 }
+
 public class CvUploadDto
 {
     public required IFormFile File { get; set; }

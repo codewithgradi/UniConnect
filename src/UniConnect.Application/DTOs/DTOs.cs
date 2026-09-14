@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using UniConnect.Domain.Enums;
 namespace UniConnect.Application.DTOs;
+
 public record PostOpportunitydto
 (
     string Title,string Description, string TargetProgramme
@@ -99,7 +100,9 @@ public record PostDto(
     string FirstName,
     string LastName,
     string userEmail,
-    bool isLiked
+    bool isLiked,
+    string MediaUrl,
+    string MediaType
     );
 public record ConnectionDto(Guid Id, Guid RequesterId, Guid RequesterProfileId, string FirtName, string LastName, ConnectionStatus Status);
 
